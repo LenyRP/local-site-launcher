@@ -189,7 +189,7 @@ footer{background:#0f172a;color:#6b7280;padding:40px 24px;text-align:center;font
   <p>${form.tagline || form.description || 'Serving ' + city + ' and surrounding areas.'}</p>
   <div class="btns">
     <a href="tel:${form.phone}" class="btn-primary">Call ${form.phone || 'Now'}</a>
-    <a href="#contact" class="btn-outline">Free Quote</a>
+    ${form.heroCta ? `<a href="#contact" class="btn-outline">${form.heroCta}</a>` : ''}
   </div>
 </div>
 <div class="trust-bar">

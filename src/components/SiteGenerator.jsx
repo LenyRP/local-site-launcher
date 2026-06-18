@@ -37,6 +37,7 @@ const EMPTY_FORM = {
   city: '', state: 'FL', zip: '', serviceType: 'pressure-washing',
   description: '', tagline: '', serviceAreas: '', domain: '',
   accentColor: '#0dce7e', facebook: '', instagram: '', google: '',
+  heroCta: 'Free Quote',
 }
 
 function compressImage(file, maxDim) {
@@ -278,6 +279,7 @@ export default function SiteGenerator({ prefill }) {
               setCustomServices(nd.services.map(s => ({ ...s })))
               setMenu([])
               setSectionTitles(defaultSectionTitles(newNiche))
+              set('heroCta', FOOD_NICHES.has(newNiche) ? '' : 'Free Quote')
             }}>
               {NICHE_GROUPS.map(g => (
                 <optgroup key={g.label} label={g.label}>
@@ -288,6 +290,10 @@ export default function SiteGenerator({ prefill }) {
           </div>
           <Input label="Description" value={form.description} onChange={e => set('description', e.target.value)} />
           <Input label="Tagline (optional)" value={form.tagline} onChange={e => set('tagline', e.target.value)} />
+          <div style={S.row}>
+            <label style={S.label}>Hero Button Text <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>(leave blank to hide)</span></label>
+            <input style={S.input} value={form.heroCta} onChange={e => set('heroCta', e.target.value)} placeholder="e.g. Free Quote, View Menu, Book a Table" />
+          </div>
         </div>
 
         {/* Location */}

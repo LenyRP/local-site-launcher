@@ -90,10 +90,10 @@ const faqs = [
           style="background:var(--color-accent);color:#fff">
           Call {business.phone}
         </a>
-        <a href="/contact/"
+        ${form.heroCta ? `<a href="/contact/"
           class="border-2 border-white/70 text-white font-semibold px-8 py-4 rounded-lg hover:bg-white/10 transition-colors">
-          Get Free Quote
-        </a>
+          ${form.heroCta}
+        </a>` : ''}
       </div>
     </div>
   </section>
