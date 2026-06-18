@@ -118,7 +118,7 @@ export function generatePreviewHTML(formRaw, images = {}) {
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',system-ui,sans-serif;color:#111}
-header{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:68px;position:sticky;top:0;z-index:10}
+header{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:80px;position:sticky;top:0;z-index:10}
 header .brand{font-weight:800;font-size:19px;color:#111}
 header a.cta{background:${accent};color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;transition:transform .15s;display:inline-block}
 header a.cta:hover{transform:scale(1.05)}
@@ -161,7 +161,7 @@ footer{background:#0f172a;color:#6b7280;padding:40px 24px;text-align:center;font
 <body>
 <div class="preview-badge">PREVIEW MODE</div>
 <header>
-  ${images.logo ? `<img src="${images.logo}" alt="${form.businessName}" style="height:38px;width:auto;object-fit:contain;display:block">` : `<span class="brand">${form.businessName}</span>`}
+  ${images.logo ? `<img src="${images.logo}" alt="${form.businessName}" style="height:60px;width:auto;object-fit:contain;display:block">` : `<span class="brand">${form.businessName}</span>`}
   <a href="tel:${form.phone}" class="cta">${form.phone || 'Call Now'}</a>
 </header>
 <div class="hero">

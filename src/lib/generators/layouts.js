@@ -115,9 +115,9 @@ import { business } from '../data/business';
 import { services } from '../data/services';
 ---
 <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-  <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-16">
+  <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-20">
     <a href="/" class="flex items-center gap-3 min-w-0">
-      ${form.hasLogo ? '<img src="/images/logo.png" alt={business.name} class="h-10 w-auto object-contain flex-shrink-0" />' : ''}
+      ${form.hasLogo ? '<img src="/images/logo.png" alt={business.name} class="h-16 w-auto object-contain flex-shrink-0" />' : ''}
       <span class="font-bold text-xl text-gray-900 truncate">{business.name}</span>
     </a>
     <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
