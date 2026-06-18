@@ -38,9 +38,9 @@ const schema = {
 
 export function genCTACmp() {
   return `---
+import { business } from '../data/business';
 export interface Props { heading?: string; subtext?: string; }
 const { heading = 'Ready to Get Started?', subtext = 'Call or text us for a free estimate.' } = Astro.props;
-import { business } from '../data/business';
 ---
 <section class="bg-accent py-12">
   <div class="max-w-3xl mx-auto px-4 text-center">

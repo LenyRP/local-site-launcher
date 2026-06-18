@@ -1,5 +1,5 @@
 import { getNicheData, slugify } from './niches.js'
-import { genPackageJson, genAstroConfig, genNvmrc, genGitignore, genRobotsTxt, genFaviconSvg } from './generators/config.js'
+import { genPackageJson, genAstroConfig, genNvmrc, genGitignore, genRobotsTxt, genFaviconSvg, genTsconfig } from './generators/config.js'
 import { genBusinessTs, genServicesTs, genAreasTs } from './generators/data.js'
 import { genGlobalCss, genBaseLayout, genHeader, genFooter } from './generators/layouts.js'
 import { genSchemaCmp, genCTACmp, genFAQCmp, genBreadcrumbsCmp } from './generators/components.js'
@@ -33,6 +33,7 @@ export function generateAstroSite(formRaw, images = {}) {
   files['package.json'] = genPackageJson(form.slug)
   files['astro.config.mjs'] = genAstroConfig(form.domain)
   files['.nvmrc'] = genNvmrc()
+  files['tsconfig.json'] = genTsconfig()
   files['gitignore.txt'] = genGitignore()
   files['public/robots.txt'] = genRobotsTxt(form.domain)
   files['public/favicon.svg'] = genFaviconSvg(form.accentColor)

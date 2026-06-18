@@ -25,7 +25,7 @@ const faqs = [
 ];
 ---
 <BaseLayout
-  title={${js(businessName + ' | ' + city + ', ' + (state || 'FL') + ' — Free Estimates')}}>
+  title={${js(businessName + ' | ' + city + ', ' + (state || 'FL') + ' — Free Estimates')}}
   description={${js(description || tagline || '')}}
 >
 
@@ -174,7 +174,7 @@ const { area } = Astro.props;
     </p>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
       {services.map(s => (
-        <a href={'/' + s.slug + '/' + area.slug + '/'} class="bg-gray-50 border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
+        <a href={'/services/' + s.slug + '/' + area.slug + '/'} class="bg-gray-50 border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
           <h3 class="font-bold text-gray-900">{s.title}</h3>
           <p class="text-sm text-gray-600 mt-1">{s.desc}</p>
         </a>

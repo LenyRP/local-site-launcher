@@ -27,6 +27,14 @@ export default defineConfig({
 `
 }
 
+export function genTsconfig() {
+  return JSON.stringify({
+    extends: 'astro/tsconfigs/strict',
+    include: ['.astro/types.d.ts', '**/*'],
+    exclude: ['dist'],
+  }, null, 2)
+}
+
 export function genNvmrc() { return '20\n' }
 
 export function genGitignore() {
