@@ -62,6 +62,29 @@ export function genHomePage(form, services, faqs) {
     </div>
   </section>`
 
+  const videoEmbedUrl = (() => {
+    const url = form.videoUrl || ''
+    const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/)
+    return m ? `https://www.youtube.com/embed/${m[1]}?rel=0&modestbranding=1` : ''
+  })()
+
+  const statsHtml = (isFood ? [
+    { num: '5', suffix: '★', label: 'Customer Rating', raw: true },
+    { num: 'Fresh', label: 'Made Daily', raw: false },
+    { num: 'Local', label: 'Community-First', raw: false },
+    { num: 'Family', label: 'Owned & Operated', raw: false },
+  ] : [
+    { num: '500', suffix: '+', label: 'Happy Customers', raw: true },
+    { num: '100', suffix: '%', label: 'Satisfaction Goal', raw: true },
+    { num: '24', suffix: '/7', label: 'Available', raw: true },
+    { num: 'Free', label: 'Estimates', raw: false },
+  ]).map(s => `
+          <div class="bg-gray-50 rounded-2xl p-6 text-center reveal">
+            <div class="text-3xl font-bold mb-1 stat-num${s.raw ? `" data-target="${s.num}" data-suffix="${s.suffix || ''}"` : '"'}
+              style="color:var(--color-accent)">${s.raw ? '0' + (s.suffix || '') : s.num}</div>
+            <div class="text-sm text-gray-500 font-medium">${s.label}</div>
+          </div>`).join('\n')
+
   return `---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CTASection from '../components/CTASection.astro';
@@ -137,6 +160,16 @@ ${svcCards}
 
 ${hasPhotos ? photoSection : ''}
 
+${videoEmbedUrl ? `  <!-- Video Section -->
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-display text-3xl font-bold text-center text-gray-900 mb-8 reveal">See Us in Action</h2>
+      <div class="rounded-2xl overflow-hidden shadow-xl aspect-video reveal">
+        <iframe src="${videoEmbedUrl}" width="100%" height="100%" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen loading="lazy" style="display:block;width:100%;height:100%"></iframe>
+      </div>
+    </div>
+  </section>` : ''}
+
 ${form.hasMenu ? `  <!-- Menu Teaser -->
   <section class="py-16 px-4 bg-gray-50 text-center">
     <div class="max-w-3xl mx-auto">
@@ -181,22 +214,7 @@ ${form.hasMenu ? `  <!-- Menu Teaser -->
           </a>
         </div>
         <div class="grid grid-cols-2 gap-4">
-          {${isFood ? `[
-            { num: '5★', label: 'Customer Rating' },
-            { num: 'Fresh', label: 'Made Daily' },
-            { num: 'Local', label: 'Community-First' },
-            { num: 'Family', label: 'Owned & Operated' },
-          ]` : `[
-            { num: '5★', label: 'Average Rating' },
-            { num: '100%', label: 'Satisfaction Goal' },
-            { num: '24/7', label: 'Available' },
-            { num: 'Free', label: 'Estimates' },
-          ]`}.map(stat => (
-            <div class="bg-gray-50 rounded-2xl p-6 text-center reveal">
-              <div class="text-3xl font-bold mb-1" style="color:var(--color-accent)">{stat.num}</div>
-              <div class="text-sm text-gray-500 font-medium">{stat.label}</div>
-            </div>
-          ))}
+${statsHtml}
         </div>
       </div>
     </div>
@@ -235,6 +253,28 @@ ${form.hasMenu ? `  <!-- Menu Teaser -->
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Stat counters
+  document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+    const target = parseFloat(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const obs = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      obs.unobserve(el);
+      let start = 0;
+      const duration = 1200;
+      const step = (timestamp) => {
+        if (!start) start = timestamp;
+        const progress = Math.min((timestamp - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const val = Math.round(target * ease);
+        el.textContent = val + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, { threshold: 0.5 });
+    obs.observe(el);
+  });
 </script>
 `
 }
@@ -409,60 +449,104 @@ import { business } from '../data/business';
 `
 }
 
-export function genContactPage() {
+export function genContactPage(form = {}) {
+  const formAction = form.formspreeId
+    ? `https://formspree.io/f/${form.formspreeId}`
+    : (form.email ? `mailto:${form.email}` : '#')
+  const mapQuery = encodeURIComponent(`${form.address || ''} ${form.city || ''} ${form.state || ''}`.trim())
+
   return `---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CTASection from '../components/CTASection.astro';
 import { business } from '../data/business';
+${form.hasHours ? "import { hours } from '../data/hours';" : ''}
 ---
-<BaseLayout title={'Contact ' + business.name} description={'Contact ' + business.name + ' for a free estimate. Call ' + business.phone}>
-  <div class="max-w-4xl mx-auto px-4 py-16">
-    <h1 class="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
-    <p class="text-xl text-gray-600 mb-12">
-      Ready to get started? Call us at <a href={'tel:' + business.phone} class="text-accent font-bold">{business.phone}</a> or fill out the form below.
-    </p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<BaseLayout title=${'`Contact | ' + (form.businessName || 'Us') + '`'} description={'Contact ' + business.name + ' for a free estimate. Call ' + business.phone}>
+  <div class="max-w-6xl mx-auto px-4 py-16">
+    <div class="text-center mb-12">
+      <h1 class="font-display text-5xl font-bold text-gray-900 mb-3">Contact Us</h1>
+      <p class="text-gray-500 text-lg">We'd love to hear from you — reach out any time.</p>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <!-- Contact Form -->
       <div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h2>
-        <form class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input type="text" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent" />
+        <form action="${formAction}" method="POST" class="space-y-5">
+          <input type="hidden" name="_subject" value="New inquiry from website" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Name *</label>
+              <input name="name" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2" placeholder="Your name" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Phone</label>
+              <input name="phone" type="tel" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2" placeholder="(xxx) xxx-xxxx" />
+            </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            <input type="tel" name="phone" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent" />
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email *</label>
+            <input name="email" type="email" required class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2" placeholder="your@email.com" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" name="email" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent" />
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Message *</label>
+            <textarea name="message" required rows="5" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 resize-none" placeholder="How can we help you?"></textarea>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
-            <textarea name="message" rows="4" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent"></textarea>
-          </div>
-          <button type="submit" class="bg-accent text-white font-bold px-8 py-3 rounded-lg hover:bg-accent-dark transition-colors">
-            Send Message
+          <button type="submit"
+            class="w-full font-bold py-4 rounded-xl text-lg text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style="background:var(--color-accent)">
+            Send Message →
           </button>
         </form>
       </div>
+      <!-- Info + Map -->
       <div class="space-y-6">
-        <div>
-          <h3 class="font-bold text-gray-900 mb-1">Phone</h3>
-          <a href={'tel:' + business.phone} class="text-accent font-bold text-lg">{business.phone}</a>
-        </div>
-        {business.email && (
-          <div>
-            <h3 class="font-bold text-gray-900 mb-1">Email</h3>
-            <a href={'mailto:' + business.email} class="text-accent">{business.email}</a>
+        <div class="bg-gray-50 rounded-2xl p-6 space-y-4">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">📞</span>
+            <div>
+              <div class="font-semibold text-gray-900">Phone</div>
+              <a href={'tel:' + business.phone} class="font-bold text-lg" style="color:var(--color-accent)">{business.phone}</a>
+            </div>
           </div>
-        )}
-        <div>
-          <h3 class="font-bold text-gray-900 mb-1">Location</h3>
-          <p class="text-gray-600">{business.city}, {business.state}</p>
+          {business.email && <div class="flex items-start gap-3">
+            <span class="text-2xl">✉️</span>
+            <div>
+              <div class="font-semibold text-gray-900">Email</div>
+              <a href={'mailto:' + business.email} class="text-gray-600 hover:text-gray-900">{business.email}</a>
+            </div>
+          </div>}
+          {business.address && <div class="flex items-start gap-3">
+            <span class="text-2xl">📍</span>
+            <div>
+              <div class="font-semibold text-gray-900">Address</div>
+              <p class="text-gray-600">{business.address}<br />{business.city}, {business.state} {business.zip}</p>
+            </div>
+          </div>}
+          ${form.hasHours ? `{hours && <div class="flex items-start gap-3">
+            <span class="text-2xl">🕐</span>
+            <div class="flex-1">
+              <div class="font-semibold text-gray-900 mb-2">Hours</div>
+              <div class="space-y-1 text-sm">
+                {hours.map(h => (
+                  <div class="flex justify-between">
+                    <span class="text-gray-500 w-24">{h.day}</span>
+                    <span class="font-medium">{h.closed ? 'Closed' : h.open + ' – ' + h.close}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>}` : ''}
         </div>
+        ${mapQuery ? `<div class="rounded-2xl overflow-hidden shadow-sm border border-gray-100" style="height:280px">
+          <iframe
+            src="https://maps.google.com/maps?q=${mapQuery}&output=embed"
+            width="100%" height="100%" style="border:0" loading="lazy" allowfullscreen
+            title="Business Location">
+          </iframe>
+        </div>` : ''}
       </div>
     </div>
   </div>
+  <CTASection />
 </BaseLayout>
 `
 }

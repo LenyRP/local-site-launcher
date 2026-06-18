@@ -38,7 +38,21 @@ const EMPTY_FORM = {
   description: '', tagline: '', serviceAreas: '', domain: '',
   accentColor: '#0dce7e', facebook: '', instagram: '', google: '',
   heroCta: 'Free Quote',
+  offerBanner: '',
+  whatsapp: '',
+  formspreeId: '',
+  videoUrl: '',
 }
+
+const DEFAULT_HOURS = [
+  { day: 'Monday',    short: 'Mon', open: '08:00', close: '17:00', closed: false },
+  { day: 'Tuesday',   short: 'Tue', open: '08:00', close: '17:00', closed: false },
+  { day: 'Wednesday', short: 'Wed', open: '08:00', close: '17:00', closed: false },
+  { day: 'Thursday',  short: 'Thu', open: '08:00', close: '17:00', closed: false },
+  { day: 'Friday',    short: 'Fri', open: '08:00', close: '17:00', closed: false },
+  { day: 'Saturday',  short: 'Sat', open: '09:00', close: '14:00', closed: false },
+  { day: 'Sunday',    short: 'Sun', open: '',      close: '',      closed: true  },
+]
 
 function compressImage(file, maxDim) {
   return new Promise((resolve) => {
@@ -111,8 +125,10 @@ export default function SiteGenerator({ prefill }) {
   const [menu, setMenu] = useState([])
   const [sectionTitles, setSectionTitles] = useState(() => defaultSectionTitles('pressure-washing'))
   const [reviews, setReviews] = useState([])
+  const [hours, setHours] = useState(DEFAULT_HOURS)
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const updateHour = (i, field, value) => setHours(h => h.map((r, idx) => idx === i ? { ...r, [field]: value } : r))
   const setImg = (k, v) => setImages(i => ({ ...i, [k]: v }))
 
   function saveSettings(s) {
@@ -156,7 +172,7 @@ export default function SiteGenerator({ prefill }) {
   function handleGenerate() {
     if (!form.businessName) { alert('Enter a business name first.'); return }
     const effectiveServices = customServices || getNicheData(form.serviceType || 'pressure-washing').services
-    const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu, _sectionTitles: sectionTitles, _reviews: reviews }, images)
+    const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu, _sectionTitles: sectionTitles, _reviews: reviews, _hours: hours }, images)
     setGenerated(files)
     setSelectedFile(Object.keys(files).find(k => !files[k].startsWith('data:')))
     setPublishResult(null)
@@ -164,7 +180,7 @@ export default function SiteGenerator({ prefill }) {
 
   function handlePreview() {
     const effectiveServices = customServices || getNicheData(form.serviceType || 'pressure-washing').services
-    const html = generatePreviewHTML({ ...form, _customServices: effectiveServices, _menu: menu, _sectionTitles: sectionTitles, _reviews: reviews }, images)
+    const html = generatePreviewHTML({ ...form, _customServices: effectiveServices, _menu: menu, _sectionTitles: sectionTitles, _reviews: reviews, _hours: hours }, images)
     const blob = new Blob([html], { type: 'text/html' })
     window.open(URL.createObjectURL(blob), '_blank')
   }
@@ -194,7 +210,7 @@ export default function SiteGenerator({ prefill }) {
     setPublishResult(null)
     try {
       const effectiveServices = customServices || getNicheData(form.serviceType || 'pressure-washing').services
-      const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu, _sectionTitles: sectionTitles, _reviews: reviews }, images)
+      const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu, _sectionTitles: sectionTitles, _reviews: reviews, _hours: hours }, images)
       const repoName = slugify(form.businessName || 'local-site') + '-site'
       const textFiles = Object.entries(files)
         .filter(([, v]) => !v.startsWith('data:'))
@@ -310,6 +326,24 @@ export default function SiteGenerator({ prefill }) {
           </div>
           <Input label="Service Areas (comma-separated)" value={form.serviceAreas}
             onChange={e => set('serviceAreas', e.target.value)} placeholder="St. Augustine, Ponte Vedra, Nocatee" />
+          <div style={S.row}>
+            <label style={S.label}>Special Offer Banner <span style={{ fontWeight: 400, color: 'var(--text-dim)' }}>(optional — shows at top of site)</span></label>
+            <input style={S.input} value={form.offerBanner} onChange={e => set('offerBanner', e.target.value)} placeholder='e.g. "Grand Opening — 10% off your first visit · Mention this site"' />
+          </div>
+          <div style={S.row2}>
+            <div>
+              <label style={S.label}>WhatsApp Number <span style={{ fontWeight: 400, color: 'var(--text-dim)' }}>(with country code)</span></label>
+              <input style={S.input} value={form.whatsapp} onChange={e => set('whatsapp', e.target.value)} placeholder="+13865551234" />
+            </div>
+            <div>
+              <label style={S.label}>Formspree ID <span style={{ fontWeight: 400, color: 'var(--text-dim)' }}>(free at formspree.io)</span></label>
+              <input style={S.input} value={form.formspreeId} onChange={e => set('formspreeId', e.target.value)} placeholder="abcd1234" />
+            </div>
+          </div>
+          <div style={S.row}>
+            <label style={S.label}>YouTube Video URL <span style={{ fontWeight: 400, color: 'var(--text-dim)' }}>(optional — embedded on home page)</span></label>
+            <input style={S.input} value={form.videoUrl} onChange={e => set('videoUrl', e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+          </div>
         </div>
 
         {/* Branding */}
@@ -418,6 +452,29 @@ export default function SiteGenerator({ prefill }) {
                   onChange={e => setSectionTitles(t => ({ ...t, [key]: e.target.value }))}
                   placeholder={defaultSectionTitles(form.serviceType)[key]}
                 />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Business Hours */}
+        <div style={S.section}>
+          <div style={S.sectionTitle}>Business Hours</div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {hours.map((h, i) => (
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '52px 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{h.short}</span>
+                <input type="time" style={{ ...S.input, opacity: h.closed ? 0.35 : 1, padding: '6px 8px' }}
+                  value={h.open} disabled={h.closed}
+                  onChange={e => updateHour(i, 'open', e.target.value)} />
+                <input type="time" style={{ ...S.input, opacity: h.closed ? 0.35 : 1, padding: '6px 8px' }}
+                  value={h.close} disabled={h.closed}
+                  onChange={e => updateHour(i, 'close', e.target.value)} />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-dim)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  <input type="checkbox" checked={h.closed}
+                    onChange={e => updateHour(i, 'closed', e.target.checked)} />
+                  Closed
+                </label>
               </div>
             ))}
           </div>

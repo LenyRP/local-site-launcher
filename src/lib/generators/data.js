@@ -18,6 +18,10 @@ export function genBusinessTs(form) {
   tagline: ${js(tagline || `Professional ${businessName} serving ${city} and surrounding areas.`)},
   domain: ${js(domain)},
   accentColor: ${js(accentColor || '#0dce7e')},
+  offerBanner: ${js(form.offerBanner || '')},
+  whatsapp: ${js(form.whatsapp || '')},
+  formspreeId: ${js(form.formspreeId || '')},
+  videoUrl: ${js(form.videoUrl || '')},
   social: {
     facebook: ${js(facebook)},
     instagram: ${js(instagram)},
@@ -25,6 +29,21 @@ export function genBusinessTs(form) {
   },
 } as const;
 `
+}
+
+export function genHoursTs(hours) {
+  const jss = (s) => JSON.stringify(String(s || ''))
+  function fmt(t) {
+    if (!t) return ''
+    const [hh, mm] = t.split(':').map(Number)
+    const ampm = hh >= 12 ? 'PM' : 'AM'
+    const h = hh % 12 || 12
+    return mm === 0 ? `${h} ${ampm}` : `${h}:${String(mm).padStart(2,'0')} ${ampm}`
+  }
+  const rows = hours.map(h =>
+    `  { day: ${jss(h.day)}, short: ${jss(h.short)}, open: ${jss(h.closed ? '' : fmt(h.open))}, close: ${jss(h.closed ? '' : fmt(h.close))}, closed: ${h.closed} }`
+  ).join(',\n')
+  return `export const hours = [\n${rows}\n] as const;\n\nexport type HoursEntry = typeof hours[number];\n`
 }
 
 export function genServicesTs(services) {
