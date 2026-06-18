@@ -17,6 +17,9 @@ function buildForm(form) {
     accentColor: form.accentColor || '#0dce7e',
     hasHero: !!(form.hasHero || (form._images && form._images.hero)),
     hasLogo: !!(form.hasLogo || (form._images && form._images.logo)),
+    hasPhoto1: !!(form.hasPhoto1 || (form._images && form._images.photo1)),
+    hasPhoto2: !!(form.hasPhoto2 || (form._images && form._images.photo2)),
+    hasPhoto3: !!(form.hasPhoto3 || (form._images && form._images.photo3)),
   }
 }
 
@@ -74,6 +77,7 @@ export function generateAstroSite(formRaw, images = {}) {
   if (images.logo) files['public/images/logo.png'] = images.logo
   if (images.photo1) files['public/images/photo1.jpg'] = images.photo1
   if (images.photo2) files['public/images/photo2.jpg'] = images.photo2
+  if (images.photo3) files['public/images/photo3.jpg'] = images.photo3
 
   return files
 }
@@ -92,47 +96,76 @@ export function generatePreviewHTML(formRaw, images = {}) {
       <p>${s.desc}</p>
     </div>`).join('')
 
+  const photoItems = [images.photo1, images.photo2, images.photo3].filter(Boolean)
+  const photoSection = photoItems.length ? `
+<section style="padding:60px 24px;background:#fff">
+  <div class="container">
+    <h2>Our Work</h2>
+    <div style="display:grid;grid-template-columns:repeat(${photoItems.length},1fr);gap:16px;max-width:1100px;margin:0 auto">
+      ${photoItems.map(src => `<div style="border-radius:12px;overflow:hidden;aspect-ratio:16/9"><img src="${src}" style="width:100%;height:100%;object-fit:cover" alt="gallery photo"></div>`).join('')}
+    </div>
+  </div>
+</section>` : ''
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>${form.businessName} — Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;color:#111}
-header{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:10}
-header .brand{font-weight:700;font-size:18px}
-header a.cta{background:${accent};color:#fff;padding:8px 18px;border-radius:6px;text-decoration:none;font-weight:600}
-.hero{background:#111 url('${heroImg}') center/cover;position:relative;padding:80px 24px;text-align:center;color:#fff}
-.hero::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:0}
+body{font-family:'Inter',system-ui,sans-serif;color:#111}
+header{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:68px;position:sticky;top:0;z-index:10}
+header .brand{font-weight:800;font-size:19px;color:#111}
+header a.cta{background:${accent};color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;transition:transform .15s;display:inline-block}
+header a.cta:hover{transform:scale(1.05)}
+.hero{background:#0f172a url('${heroImg}') center/cover;position:relative;padding:100px 24px;text-align:center;color:#fff;min-height:500px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.6));z-index:0}
 .hero *{position:relative;z-index:1}
-.hero h1{font-size:clamp(28px,5vw,48px);font-weight:800;margin-bottom:12px}
-.hero p{font-size:18px;opacity:.9;margin-bottom:28px}
+.hero .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;color:${accent};opacity:1}
+.hero h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(32px,6vw,58px);font-weight:800;margin-bottom:14px;line-height:1.1}
+.hero p{font-size:18px;opacity:.9;margin-bottom:32px;max-width:580px}
 .hero .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn-primary{background:${accent};color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px}
-.btn-outline{border:2px solid #fff;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600}
-section{padding:60px 24px}
+.btn-primary{background:${accent};color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;transition:transform .15s}
+.btn-primary:hover{transform:scale(1.05)}
+.btn-outline{border:2px solid rgba(255,255,255,.7);color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600}
+.trust-bar{background:#0f172a;color:#fff;padding:14px 24px;display:flex;flex-wrap:wrap;justify-content:center;gap:20px;font-size:13px;font-weight:600}
+.trust-bar span em{font-style:normal;color:${accent};margin-right:5px}
+section{padding:72px 24px}
 .container{max-width:1100px;margin:0 auto}
-h2{font-size:28px;font-weight:700;margin-bottom:24px;text-align:center}
+h2{font-family:'Playfair Display',Georgia,serif;font-size:clamp(26px,4vw,38px);font-weight:800;margin-bottom:12px;text-align:center;color:#111}
+.sub{text-align:center;color:#6b7280;margin-bottom:36px;font-size:15px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px}
-.card h3{font-size:16px;font-weight:700;margin-bottom:8px}
-.card p{font-size:13px;color:#6b7280;line-height:1.6}
+.card{background:#fff;border:1px solid #e5e7eb;border-top:3px solid transparent;border-radius:12px;padding:28px;transition:all .25s}
+.card:hover{border-top-color:${accent};box-shadow:0 8px 28px rgba(0,0,0,.10);transform:translateY(-3px)}
+.card h3{font-size:15px;font-weight:700;margin-bottom:8px;color:#111}
+.card p{font-size:13px;color:#6b7280;line-height:1.65}
 .areas{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-.area-pill{background:#f3f4f6;padding:8px 18px;border-radius:999px;font-size:13px;font-weight:600}
-@media(max-width:768px){header{padding:0 16px}.grid{grid-template-columns:1fr}section{padding:40px 16px}.hero{padding:60px 16px}.hero h1{font-size:clamp(22px,6vw,36px)}.hero p{font-size:15px}}
-footer{background:#111;color:#9ca3af;padding:40px 24px;text-align:center;font-size:13px}
+.area-pill{border:2px solid ${accent};color:${accent};padding:8px 20px;border-radius:999px;font-size:13px;font-weight:700;background:color-mix(in srgb,${accent} 10%,white)}
+.why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:32px}
+.why-card{background:#f9fafb;border-radius:16px;padding:24px;text-align:center}
+.why-card .num{font-size:28px;font-weight:800;color:${accent};margin-bottom:4px}
+.why-card .lbl{font-size:12px;color:#6b7280;font-weight:600}
+.cta-section{background:linear-gradient(135deg,#0f172a,#1e293b);padding:80px 24px;text-align:center;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,.05) 1px,transparent 0);background-size:32px 32px}
+.cta-section h2{font-family:'Playfair Display',Georgia,serif;color:#fff;position:relative}
+.cta-section p{color:#94a3b8;margin-bottom:32px;font-size:16px;position:relative}
+footer{background:#0f172a;color:#6b7280;padding:40px 24px;text-align:center;font-size:13px}
 .preview-badge{position:fixed;bottom:16px;right:16px;background:#1e293b;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;font-family:monospace;z-index:100}
+@media(max-width:768px){.grid{grid-template-columns:1fr}.why-grid{grid-template-columns:repeat(2,1fr)}.hero{padding:72px 16px}}
 </style>
 </head>
 <body>
 <div class="preview-badge">PREVIEW MODE</div>
 <header>
-  ${images.logo ? `<img src="${images.logo}" alt="${form.businessName}" style="height:36px;width:auto;object-fit:contain;display:block">` : `<span class="brand">${form.businessName}</span>`}
+  ${images.logo ? `<img src="${images.logo}" alt="${form.businessName}" style="height:38px;width:auto;object-fit:contain;display:block">` : `<span class="brand">${form.businessName}</span>`}
   <a href="tel:${form.phone}" class="cta">${form.phone || 'Call Now'}</a>
 </header>
 <div class="hero">
+  <p class="eyebrow">${city} • ${form.state || 'FL'}</p>
   <h1>${form.businessName}</h1>
   <p>${form.tagline || form.description || 'Serving ' + city + ' and surrounding areas.'}</p>
   <div class="btns">
@@ -140,20 +173,53 @@ footer{background:#111;color:#9ca3af;padding:40px 24px;text-align:center;font-si
     <a href="#contact" class="btn-outline">Free Quote</a>
   </div>
 </div>
-<section>
+<div class="trust-bar">
+  <span><em>✓</em>Licensed & Insured</span>
+  <span><em>★</em>Top-Rated Local</span>
+  <span><em>⚡</em>Fast Response</span>
+  <span><em>💬</em>Free Estimates</span>
+  <span><em>📍</em>Locally Owned</span>
+</div>
+<section style="background:#f9fafb">
   <div class="container">
     <h2>Our Services</h2>
+    <p class="sub">Professional, reliable service — satisfaction guaranteed.</p>
     <div class="grid">${svcCards}</div>
+  </div>
+</section>
+${photoSection}
+<section>
+  <div class="container">
+    <div style="max-width:700px;margin:0 auto;text-align:center">
+      <p style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${accent};margin-bottom:10px">Why Choose Us</p>
+      <h2>${form.businessName}</h2>
+      <p class="sub">${form.description || 'Professional service you can count on. Local experts who stand behind their work.'}</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card"><div class="num">5★</div><div class="lbl">Avg Rating</div></div>
+      <div class="why-card"><div class="num">100%</div><div class="lbl">Satisfaction</div></div>
+      <div class="why-card"><div class="num">24/7</div><div class="lbl">Available</div></div>
+      <div class="why-card"><div class="num">Free</div><div class="lbl">Estimates</div></div>
+    </div>
   </div>
 </section>
 <section style="background:#f9fafb">
   <div class="container">
     <h2>Service Areas</h2>
+    <p class="sub">Proudly serving the following communities</p>
     <div class="areas">
       ${(form.serviceAreas || city).split(',').map(a => `<span class="area-pill">${a.trim()}</span>`).join('')}
     </div>
   </div>
 </section>
+<div class="cta-section">
+  <h2>Ready to Get Started?</h2>
+  <p>Call or text us for a free, no-obligation estimate.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative">
+    <a href="tel:${form.phone}" style="background:${accent};color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px">Call ${form.phone || 'Now'}</a>
+    <a href="#contact" style="border:2px solid rgba(255,255,255,.4);color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600">Send a Message →</a>
+  </div>
+</div>
 <footer>&copy; ${new Date().getFullYear()} ${form.businessName}. All rights reserved.</footer>
 </body>
 </html>`

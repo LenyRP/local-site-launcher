@@ -40,20 +40,22 @@ export function genCTACmp() {
   return `---
 import { business } from '../data/business';
 export interface Props { heading?: string; subtext?: string; }
-const { heading = 'Ready to Get Started?', subtext = 'Call or text us for a free estimate.' } = Astro.props;
+const { heading = 'Ready to Get Started?', subtext = 'Call or text us for a free, no-obligation estimate.' } = Astro.props;
 ---
-<section class="bg-accent py-12">
-  <div class="max-w-3xl mx-auto px-4 text-center">
-    <h2 class="text-3xl font-bold text-white mb-2">{heading}</h2>
-    <p class="text-white/90 mb-6">{subtext}</p>
+<section class="relative overflow-hidden py-20 px-4" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);">
+  <div class="absolute inset-0 opacity-5" style="background-image:radial-gradient(circle at 2px 2px, white 1px, transparent 0);background-size:32px 32px;"></div>
+  <div class="relative max-w-3xl mx-auto text-center">
+    <h2 class="font-display text-4xl font-bold text-white mb-3">{heading}</h2>
+    <p class="text-gray-300 mb-8 text-lg">{subtext}</p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
       <a href={'tel:' + business.phone}
-        class="bg-white text-accent font-bold px-8 py-3 rounded-lg text-lg hover:bg-gray-100 transition-colors">
+        class="font-bold px-10 py-4 rounded-lg text-lg transition-all duration-200 hover:scale-105 hover:shadow-lg"
+        style="background:var(--color-accent);color:#fff">
         Call {business.phone}
       </a>
       <a href="/contact/"
-        class="border-2 border-white text-white font-semibold px-8 py-3 rounded-lg hover:bg-white/10 transition-colors">
-        Free Quote →
+        class="border-2 border-white/40 text-white font-semibold px-10 py-4 rounded-lg hover:bg-white/10 transition-colors">
+        Send a Message →
       </a>
     </div>
   </div>

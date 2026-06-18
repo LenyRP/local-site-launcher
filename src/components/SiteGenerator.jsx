@@ -291,9 +291,10 @@ export default function SiteGenerator({ prefill }) {
           </div>
           <ImageUpload label="Logo" value={images.logo} onChange={v => setImg('logo', v)} maxDim={400} />
           <ImageUpload label="Hero Image" value={images.hero} onChange={v => setImg('hero', v)} />
-          <div style={S.row2}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
             <ImageUpload label="Photo 1" value={images.photo1} onChange={v => setImg('photo1', v)} />
             <ImageUpload label="Photo 2" value={images.photo2} onChange={v => setImg('photo2', v)} />
+            <ImageUpload label="Photo 3" value={images.photo3} onChange={v => setImg('photo3', v)} />
           </div>
         </div>
 

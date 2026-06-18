@@ -4,14 +4,28 @@ const js = (s) => JSON.stringify(String(s || ''))
 export function genHomePage(form, services, faqs) {
   const { businessName, city, state, description, tagline, phone, accentColor } = form
   const heroImg = form.hasHero ? '/images/hero.jpg' : ''
-  const svcCards = services.map(s =>
-    `    <a href={'/services/' + ${js(s.slug)} + '/'} class="block bg-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow border border-gray-100">
+  const hasPhotos = form.hasPhoto1 || form.hasPhoto2 || form.hasPhoto3
+
+  const svcCards = services.map((s, i) =>
+    `    <div class="service-card reveal reveal-delay-${i + 1}">
       <h3 class="font-bold text-lg text-gray-900 mb-2">${s.title}</h3>
-      <p class="text-gray-600 text-sm">${s.desc}</p>
-    </a>`
+      <p class="text-gray-500 text-sm leading-relaxed">${s.desc}</p>
+    </div>`
   ).join('\n')
 
   const faqItems = faqs.map(f => `{ q: ${js(f.q)}, a: ${js(f.a)} }`).join(',\n    ')
+
+  const photoSection = `  <!-- Photo Gallery -->
+  <section class="py-16 px-4 bg-white">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="font-display text-3xl font-bold text-center text-gray-900 mb-10 reveal">Our Work</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        ${form.hasPhoto1 ? '<div class="overflow-hidden rounded-xl aspect-video reveal reveal-delay-1"><img src="/images/photo1.jpg" alt={business.name} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" /></div>' : ''}
+        ${form.hasPhoto2 ? '<div class="overflow-hidden rounded-xl aspect-video reveal reveal-delay-2"><img src="/images/photo2.jpg" alt={business.name} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" /></div>' : ''}
+        ${form.hasPhoto3 ? '<div class="overflow-hidden rounded-xl aspect-video reveal reveal-delay-3"><img src="/images/photo3.jpg" alt={business.name} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" /></div>' : ''}
+      </div>
+    </div>
+  </section>`
 
   return `---
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -30,61 +44,108 @@ const faqs = [
 >
 
   <!-- Hero -->
-  <section class="relative bg-gray-900 text-white py-20 px-4"${heroImg ? ` style="background-image:url('${heroImg}');background-size:cover;background-position:center;"` : ''}>
-    ${heroImg ? '<div class="absolute inset-0 bg-black/60"></div>' : ''}
-    <div class="relative max-w-4xl mx-auto text-center">
-      <h1 class="text-4xl md:text-5xl font-bold mb-4">${businessName}</h1>
-      <p class="text-xl text-gray-200 mb-8">${tagline || description || 'Serving ' + city + ' and surrounding areas.'}</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+  <section class="relative text-white overflow-hidden" style="min-height:520px;${heroImg ? `background:linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),url('${heroImg}') center/cover no-repeat;` : 'background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);'}">
+    <div class="relative max-w-5xl mx-auto px-6 py-24 text-center flex flex-col items-center justify-center" style="min-height:520px;">
+      <p class="uppercase tracking-widest text-sm font-semibold mb-4 opacity-80" style="color:var(--color-accent)">${city}, ${state || 'FL'}</p>
+      <h1 class="font-display text-5xl md:text-6xl font-bold mb-5 leading-tight">${businessName}</h1>
+      <p class="text-xl text-gray-200 mb-10 max-w-2xl">${tagline || description || 'Serving ' + city + ' and surrounding areas.'}</p>
+      <div class="flex flex-col sm:flex-row gap-4">
         <a href={'tel:' + business.phone}
-          class="bg-accent text-white font-bold px-8 py-4 rounded-lg text-lg hover:bg-accent-dark transition-colors">
+          class="font-bold px-8 py-4 rounded-lg text-lg transition-all duration-200 hover:scale-105"
+          style="background:var(--color-accent);color:#fff">
           Call {business.phone}
         </a>
-        <a href="/contact/" class="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white/10 transition-colors">
+        <a href="/contact/"
+          class="border-2 border-white/70 text-white font-semibold px-8 py-4 rounded-lg hover:bg-white/10 transition-colors">
           Get Free Quote
         </a>
       </div>
     </div>
   </section>
 
+  <!-- Trust Bar -->
+  <div class="bg-gray-900 text-white py-4 px-4">
+    <div class="max-w-5xl mx-auto flex flex-wrap justify-center gap-6 text-sm font-medium">
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">✓</span> Licensed &amp; Insured</span>
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">★</span> Top-Rated Local</span>
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">⚡</span> Fast Response</span>
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">💬</span> Free Estimates</span>
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">📍</span> Locally Owned</span>
+    </div>
+  </div>
+
   <!-- Services -->
-  <section class="py-16 px-4 bg-white">
+  <section class="py-20 px-4 bg-gray-50">
     <div class="max-w-6xl mx-auto">
-      <h2 class="text-3xl font-bold text-center text-gray-900 mb-10">Our Services</h2>
+      <div class="text-center mb-12">
+        <h2 class="font-display text-4xl font-bold text-gray-900 mb-3 reveal">Our Services</h2>
+        <p class="text-gray-500 max-w-xl mx-auto reveal reveal-delay-1">Professional, reliable service backed by experience and a satisfaction guarantee.</p>
+      </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 ${svcCards}
       </div>
     </div>
   </section>
 
+  <!-- Wave Divider -->
+  <div class="wave-divider bg-gray-50" style="margin-bottom:-2px">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none" style="width:100%;height:60px;display:block">
+      <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="white"/>
+    </svg>
+  </div>
+
+${hasPhotos ? photoSection : ''}
+
   <!-- Why Choose Us -->
-  <section class="py-16 px-4 bg-gray-50">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-3xl font-bold text-gray-900 mb-4">Why ${businessName}?</h2>
-      <p class="text-gray-600 mb-10">${description || 'Professional, reliable service you can count on.'}</p>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {[
-          { icon: '✓', label: 'Licensed & Insured' },
-          { icon: '★', label: 'Top-Rated Local' },
-          { icon: '⚡', label: 'Fast Response' },
-          { icon: '💬', label: 'Free Estimates' },
-        ].map(item => (
-          <div class="flex flex-col items-center">
-            <span class="text-3xl text-accent mb-2">{item.icon}</span>
-            <span class="font-semibold text-gray-800 text-sm">{item.label}</span>
+  <section class="py-20 px-4 bg-white">
+    <div class="max-w-5xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div>
+          <p class="text-accent font-semibold uppercase tracking-widest text-sm mb-3">Why Choose Us</p>
+          <h2 class="font-display text-4xl font-bold text-gray-900 mb-5 reveal">${businessName}</h2>
+          <p class="text-gray-600 leading-relaxed mb-8">${description || 'We take pride in delivering quality service to every customer. Local expertise, honest pricing, and a commitment to your satisfaction on every job.'}</p>
+          <div class="space-y-4">
+            {[
+              'Fully licensed and insured for your protection',
+              'Transparent pricing — no surprises',
+              'Fast response and scheduling',
+              'Satisfaction guaranteed on every job',
+            ].map(item => (
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-bold" style="background:var(--color-accent)">✓</span>
+                <span class="text-gray-700">{item}</span>
+              </div>
+            ))}
           </div>
-        ))}
+          <a href="/contact/" class="mt-8 inline-block font-bold px-8 py-3 rounded-lg transition-all duration-200 hover:scale-105" style="background:var(--color-accent);color:#fff">
+            Get a Free Quote
+          </a>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          {[
+            { num: '5★', label: 'Average Rating' },
+            { num: '100%', label: 'Satisfaction Goal' },
+            { num: '24/7', label: 'Available' },
+            { num: 'Free', label: 'Estimates' },
+          ].map(stat => (
+            <div class="bg-gray-50 rounded-2xl p-6 text-center reveal">
+              <div class="text-3xl font-bold mb-1" style="color:var(--color-accent)">{stat.num}</div>
+              <div class="text-sm text-gray-500 font-medium">{stat.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Service Areas -->
-  <section class="py-12 px-4 bg-white">
+  <section class="py-16 px-4 bg-gray-50">
     <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Service Areas</h2>
+      <h2 class="font-display text-3xl font-bold text-gray-900 mb-2 reveal">Service Areas</h2>
+      <p class="text-gray-500 mb-8 reveal">Proudly serving the following communities</p>
       <div class="flex flex-wrap justify-center gap-3">
         {areas.map(a => (
-          <a href={'/areas/' + a.slug + '/'} class="bg-gray-100 hover:bg-accent hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
+          <a href={'/areas/' + a.slug + '/'} class="px-5 py-2.5 rounded-full text-sm font-semibold border-2 transition-all duration-200 hover:scale-105" style="border-color:var(--color-accent);color:var(--color-accent);background:var(--color-accent-light)">
             {a.city}
           </a>
         ))}
@@ -93,15 +154,22 @@ ${svcCards}
   </section>
 
   <!-- FAQs -->
-  <section class="py-16 px-4 bg-gray-50">
+  <section class="py-20 px-4 bg-white">
     <div class="max-w-3xl mx-auto">
-      <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Frequently Asked Questions</h2>
+      <h2 class="font-display text-4xl font-bold text-gray-900 mb-10 text-center reveal">Frequently Asked Questions</h2>
       <FAQAccordion faqs={faqs} />
     </div>
   </section>
 
   <CTASection />
 </BaseLayout>
+
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
 `
 }
 

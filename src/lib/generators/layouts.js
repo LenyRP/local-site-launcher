@@ -3,15 +3,59 @@
 export function genGlobalCss(accentColor) {
   const c = accentColor || '#0dce7e'
   return `@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
 
 @theme {
   --color-accent: ${c};
   --color-accent-dark: color-mix(in srgb, ${c} 80%, black);
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --color-accent-light: color-mix(in srgb, ${c} 15%, white);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
 }
 
 html { scroll-behavior: smooth; }
 body { font-family: var(--font-sans); }
+
+.font-display { font-family: var(--font-display); }
+
+/* Fade-in on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+.reveal-delay-6 { transition-delay: 0.6s; }
+.reveal-delay-7 { transition-delay: 0.7s; }
+.reveal-delay-8 { transition-delay: 0.8s; }
+.reveal-delay-9 { transition-delay: 0.9s; }
+
+/* Service cards */
+.service-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-top: 3px solid transparent;
+  border-radius: 12px;
+  padding: 28px;
+  transition: all 0.25s ease;
+  cursor: default;
+}
+.service-card:hover {
+  border-top-color: var(--color-accent);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.10);
+  transform: translateY(-3px);
+}
+
+/* Wave divider */
+.wave-divider svg { display: block; }
 `
 }
 
