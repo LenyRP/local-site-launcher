@@ -1,0 +1,145 @@
+// Generates BaseLayout.astro, Header.astro, Footer.astro, global.css
+
+export function genGlobalCss(accentColor) {
+  const c = accentColor || '#0dce7e'
+  return `@import "tailwindcss";
+
+@theme {
+  --color-accent: ${c};
+  --color-accent-dark: color-mix(in srgb, ${c} 80%, black);
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); }
+`
+}
+
+export function genBaseLayout(form) {
+  const { businessName, phone, city, state, description, domain, accentColor } = form
+  return `---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SchemaLocalBusiness from '../components/SchemaLocalBusiness.astro';
+import '../styles/global.css';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+}
+
+const {
+  title = ${JSON.stringify(businessName + ' | ' + city + ', ' + (state || 'FL'))},
+  description: desc = ${JSON.stringify(description || '')},
+  canonical = Astro.url.href,
+} = Astro.props;
+const siteName = ${JSON.stringify(businessName)};
+const siteUrl = ${JSON.stringify('https://' + (domain || 'example.com'))};
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={desc} />
+  <link rel="canonical" href={canonical} />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={desc} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:site_name" content={siteName} />
+  <SchemaLocalBusiness />
+</head>
+<body class="bg-white text-gray-900">
+  <Header />
+  <main>
+    <slot />
+  </main>
+  <Footer />
+</body>
+</html>
+`
+}
+
+export function genHeader(form) {
+  const { businessName, phone, accentColor } = form
+  return `---
+import { business } from '../data/business';
+import { services } from '../data/services';
+---
+<header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+  <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-16">
+    <a href="/" class="font-bold text-xl text-gray-900">{business.name}</a>
+    <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
+      <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
+      <div class="relative group">
+        <button class="text-gray-600 hover:text-gray-900 flex items-center gap-1">
+          Services <span class="text-xs">▾</span>
+        </button>
+        <div class="absolute left-0 top-full hidden group-hover:block bg-white border border-gray-200 rounded shadow-lg py-2 min-w-48 z-10">
+          {services.map(s => (
+            <a href={'/services/' + s.slug + '/'} class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{s.title}</a>
+          ))}
+        </div>
+      </div>
+      <a href="/about/" class="text-gray-600 hover:text-gray-900">About</a>
+      <a href="/contact/" class="text-gray-600 hover:text-gray-900">Contact</a>
+    </nav>
+    <a href={'tel:' + business.phone}
+      class="bg-accent text-white px-4 py-2 rounded font-semibold text-sm hover:bg-accent-dark transition-colors">
+      {business.phone}
+    </a>
+  </div>
+</header>
+`
+}
+
+export function genFooter(form) {
+  const year = new Date().getFullYear()
+  return `---
+import { business } from '../data/business';
+import { services } from '../data/services';
+import { areas } from '../data/areas';
+---
+<footer class="bg-gray-900 text-gray-300 pt-12 pb-6">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+      <div>
+        <h3 class="text-white font-bold text-lg mb-3">{business.name}</h3>
+        <p class="text-sm leading-relaxed">{business.tagline}</p>
+        <a href={'tel:' + business.phone} class="mt-4 inline-block text-accent font-bold text-lg">
+          {business.phone}
+        </a>
+        {business.email && <p class="text-sm mt-1">{business.email}</p>}
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-3">Services</h3>
+        <ul class="space-y-1 text-sm">
+          {services.map(s => (
+            <li><a href={'/services/' + s.slug + '/'} class="hover:text-white transition-colors">{s.title}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-3">Service Areas</h3>
+        <ul class="space-y-1 text-sm">
+          {areas.map(a => (
+            <li><a href={'/areas/' + a.slug + '/'} class="hover:text-white transition-colors">{a.city}</a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 gap-2">
+      <p>&copy; ${year} {business.name}. All rights reserved.</p>
+      <div class="flex gap-4">
+        <a href="/privacy/" class="hover:text-gray-300">Privacy Policy</a>
+        <a href="/terms/" class="hover:text-gray-300">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+`
+}
