@@ -22,7 +22,7 @@ export default function LeadFinder({ onBuildSite }) {
     setError('')
     setLoading(true)
     localStorage.setItem('gplaces_key', apiKey)
-    const nicheLabel = NICHES.find(n => n.value === niche)?.label || niche
+    const nicheLabel = NICHE_GROUPS.flatMap(g => g.niches).find(n => n.value === niche)?.label || niche
     try {
       const sr = await fetch('/api/places-search', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
