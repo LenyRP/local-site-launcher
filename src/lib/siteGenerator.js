@@ -1,15 +1,15 @@
 import { getNicheData, slugify } from './niches.js'
 import { genPackageJson, genAstroConfig, genNvmrc, genGitignore, genRobotsTxt, genFaviconSvg, genTsconfig } from './generators/config.js'
-import { genBusinessTs, genServicesTs, genAreasTs } from './generators/data.js'
+import { genBusinessTs, genServicesTs, genAreasTs, genMenuTs } from './generators/data.js'
 import { genGlobalCss, genBaseLayout, genHeader, genFooter } from './generators/layouts.js'
 import { genSchemaCmp, genCTACmp, genFAQCmp, genBreadcrumbsCmp } from './generators/components.js'
 import {
   genHomePage, genServicePage, genAreaPage, genMatrixPage,
   genAboutPage, genContactPage, genServicesIndexPage, genAreasIndexPage,
-  genPrivacyPage, genTermsPage,
+  genPrivacyPage, genTermsPage, genMenuPage,
 } from './generators/pages.js'
 
-function buildForm(form) {
+function buildForm(form, menu = []) {
   return {
     ...form,
     slug: form.slug || slugify(form.businessName || 'local-business'),
@@ -20,14 +20,16 @@ function buildForm(form) {
     hasPhoto1: !!(form.hasPhoto1 || (form._images && form._images.photo1)),
     hasPhoto2: !!(form.hasPhoto2 || (form._images && form._images.photo2)),
     hasPhoto3: !!(form.hasPhoto3 || (form._images && form._images.photo3)),
+    hasMenu: menu.length > 0,
   }
 }
 
 export function generateAstroSite(formRaw, images = {}) {
-  const form = buildForm({ ...formRaw, _images: images })
+  const menu = formRaw._menu || []
+  const form = buildForm({ ...formRaw, _images: images }, menu)
   const nicheData = getNicheData(form.serviceType || 'pressure-washing')
   const city = form.city || 'the local area'
-  const services = nicheData.services
+  const services = formRaw._customServices && formRaw._customServices.length > 0 ? formRaw._customServices : nicheData.services
   const faqs = nicheData.faqs(city)
 
   const files = {}
@@ -72,6 +74,12 @@ export function generateAstroSite(formRaw, images = {}) {
   files['src/pages/privacy.astro'] = genPrivacyPage(form.businessName)
   files['src/pages/terms.astro'] = genTermsPage(form.businessName)
 
+  // Menu data + page (if menu items exist)
+  if (menu.length > 0) {
+    files['src/data/menu.ts'] = genMenuTs(menu)
+    files['src/pages/menu.astro'] = genMenuPage(form)
+  }
+
   // Images
   if (images.hero) files['public/images/hero.jpg'] = images.hero
   if (images.logo) files['public/images/logo.png'] = images.logo
@@ -83,10 +91,11 @@ export function generateAstroSite(formRaw, images = {}) {
 }
 
 export function generatePreviewHTML(formRaw, images = {}) {
-  const form = buildForm({ ...formRaw, _images: images })
+  const menu = formRaw._menu || []
+  const form = buildForm({ ...formRaw, _images: images }, menu)
   const nicheData = getNicheData(form.serviceType || 'pressure-washing')
   const city = form.city || 'the local area'
-  const services = nicheData.services
+  const services = formRaw._customServices && formRaw._customServices.length > 0 ? formRaw._customServices : nicheData.services
   const accent = form.accentColor || '#0dce7e'
   const heroImg = images.hero || ''
 

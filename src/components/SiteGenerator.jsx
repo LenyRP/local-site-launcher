@@ -1,7 +1,9 @@
 import { useState, useCallback, useRef } from 'react'
 import JSZip from 'jszip'
 import { generateAstroSite, generatePreviewHTML } from '../lib/siteGenerator.js'
-import { NICHE_GROUPS, slugify } from '../lib/niches.js'
+import { NICHE_GROUPS, slugify, getNicheData } from '../lib/niches.js'
+
+const FOOD_NICHES = new Set(['restaurant', 'cafe', 'bakery', 'food-truck', 'catering', 'bar', 'brewery', 'pizza', 'diner', 'seafood'])
 
 const S = {
   wrap: { display: 'flex', height: 'calc(100vh - 56px)', overflow: 'hidden' },
@@ -92,6 +94,8 @@ export default function SiteGenerator({ prefill }) {
     try { return JSON.parse(localStorage.getItem('ll_settings') || '{}') } catch { return {} }
   })
   const [showSettings, setShowSettings] = useState(false)
+  const [customServices, setCustomServices] = useState(null)
+  const [menu, setMenu] = useState([])
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const setImg = (k, v) => setImages(i => ({ ...i, [k]: v }))
@@ -136,14 +140,16 @@ export default function SiteGenerator({ prefill }) {
 
   function handleGenerate() {
     if (!form.businessName) { alert('Enter a business name first.'); return }
-    const files = generateAstroSite(form, images)
+    const effectiveServices = customServices || getNicheData(form.serviceType || 'pressure-washing').services
+    const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu }, images)
     setGenerated(files)
     setSelectedFile(Object.keys(files).find(k => !files[k].startsWith('data:')))
     setPublishResult(null)
   }
 
   function handlePreview() {
-    const html = generatePreviewHTML(form, images)
+    const effectiveServices = customServices || getNicheData(form.serviceType || 'pressure-washing').services
+    const html = generatePreviewHTML({ ...form, _customServices: effectiveServices, _menu: menu }, images)
     const blob = new Blob([html], { type: 'text/html' })
     window.open(URL.createObjectURL(blob), '_blank')
   }
@@ -172,7 +178,8 @@ export default function SiteGenerator({ prefill }) {
     setPublishing(true)
     setPublishResult(null)
     try {
-      const files = generateAstroSite(form, images)
+      const effectiveServices = customServices || getNicheData(form.serviceType || 'pressure-washing').services
+      const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu }, images)
       const repoName = slugify(form.businessName || 'local-site') + '-site'
       const textFiles = Object.entries(files)
         .filter(([, v]) => !v.startsWith('data:'))
@@ -250,7 +257,13 @@ export default function SiteGenerator({ prefill }) {
           </div>
           <div style={S.row}>
             <label style={S.label}>Service Type</label>
-            <select style={S.input} value={form.serviceType} onChange={e => set('serviceType', e.target.value)}>
+            <select style={S.input} value={form.serviceType} onChange={e => {
+              const newNiche = e.target.value
+              set('serviceType', newNiche)
+              const nd = getNicheData(newNiche)
+              setCustomServices(nd.services.map(s => ({ ...s })))
+              setMenu([])
+            }}>
               {NICHE_GROUPS.map(g => (
                 <optgroup key={g.label} label={g.label}>
                   {g.niches.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
@@ -297,6 +310,129 @@ export default function SiteGenerator({ prefill }) {
             <ImageUpload label="Photo 3" value={images.photo3} onChange={v => setImg('photo3', v)} />
           </div>
         </div>
+
+        {/* Services Editor */}
+        <div style={S.section}>
+          <div style={S.sectionTitle}>Services</div>
+          <p style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 12 }}>
+            Pre-filled from your selected niche. Edit titles and descriptions, add or remove services.
+          </p>
+          {(customServices || getNicheData(form.serviceType).services).map((svc, i) => (
+            <div key={i} style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, padding: 14, marginBottom: 10 }}>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 8, alignItems: 'flex-start' }}>
+                <input
+                  style={{ ...S.input, flex: 1, fontWeight: 600 }}
+                  value={svc.title}
+                  placeholder="Service title"
+                  onChange={e => {
+                    const updated = [...(customServices || getNicheData(form.serviceType).services)]
+                    updated[i] = { ...updated[i], title: e.target.value }
+                    setCustomServices(updated)
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    const base = customServices || getNicheData(form.serviceType).services.map(s => ({ ...s }))
+                    setCustomServices(base.filter((_, idx) => idx !== i))
+                  }}
+                  style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 10px', fontSize: 14, flexShrink: 0 }}
+                  title="Remove service"
+                >✕</button>
+              </div>
+              <textarea
+                style={{ ...S.input, width: '100%', minHeight: 60, resize: 'vertical', fontFamily: 'inherit' }}
+                value={svc.desc}
+                placeholder="Service description"
+                onChange={e => {
+                  const updated = [...(customServices || getNicheData(form.serviceType).services)]
+                  updated[i] = { ...updated[i], desc: e.target.value }
+                  setCustomServices(updated)
+                }}
+              />
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              const base = customServices || getNicheData(form.serviceType).services.map(s => ({ ...s }))
+              setCustomServices([...base, { slug: 'custom-' + (base.length + 1), title: '', desc: '' }])
+            }}
+            style={{ background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 6, color: 'var(--accent)', cursor: 'pointer', padding: '8px 16px', fontSize: 13, fontWeight: 600, width: '100%' }}
+          >+ Add Service</button>
+        </div>
+
+        {/* Menu Builder */}
+        {FOOD_NICHES.has(form.serviceType) && (
+          <div style={S.section}>
+            <div style={S.sectionTitle}>Menu</div>
+            <p style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 12 }}>
+              Add menu categories and items. Each item gets a name, price, and optional description.
+            </p>
+            {menu.map((cat, ci) => (
+              <div key={ci} style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, marginBottom: 14 }}>
+                <div style={{ display: 'flex', gap: 10, marginBottom: 12, alignItems: 'center' }}>
+                  <input
+                    style={{ ...S.input, flex: 1, fontWeight: 700 }}
+                    value={cat.category}
+                    placeholder="Category (e.g. Breakfast, Cocktails)"
+                    onChange={e => {
+                      const m = [...menu]
+                      m[ci] = { ...m[ci], category: e.target.value }
+                      setMenu(m)
+                    }}
+                  />
+                  <button
+                    onClick={() => setMenu(menu.filter((_, idx) => idx !== ci))}
+                    style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 10px', fontSize: 14 }}
+                  >Remove Category</button>
+                </div>
+                {cat.items.map((item, ii) => (
+                  <div key={ii} style={{ display: 'grid', gridTemplateColumns: '1fr 100px auto', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                    <input
+                      style={S.input}
+                      value={item.name}
+                      placeholder="Item name"
+                      onChange={e => {
+                        const m = [...menu]
+                        m[ci] = { ...m[ci], items: m[ci].items.map((it, idx) => idx === ii ? { ...it, name: e.target.value } : it) }
+                        setMenu(m)
+                      }}
+                    />
+                    <input
+                      style={S.input}
+                      value={item.price}
+                      placeholder="$0.00"
+                      onChange={e => {
+                        const m = [...menu]
+                        m[ci] = { ...m[ci], items: m[ci].items.map((it, idx) => idx === ii ? { ...it, price: e.target.value } : it) }
+                        setMenu(m)
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const m = [...menu]
+                        m[ci] = { ...m[ci], items: m[ci].items.filter((_, idx) => idx !== ii) }
+                        setMenu(m)
+                      }}
+                      style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 10px', fontSize: 14 }}
+                    >✕</button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => {
+                    const m = [...menu]
+                    m[ci] = { ...m[ci], items: [...m[ci].items, { name: '', price: '', desc: '' }] }
+                    setMenu(m)
+                  }}
+                  style={{ background: 'transparent', border: '1px dashed var(--border)', borderRadius: 6, color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 12px', fontSize: 12, width: '100%', marginTop: 4 }}
+                >+ Add Item</button>
+              </div>
+            ))}
+            <button
+              onClick={() => setMenu([...menu, { category: '', items: [] }])}
+              style={{ background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 6, color: 'var(--accent)', cursor: 'pointer', padding: '8px 16px', fontSize: 13, fontWeight: 600, width: '100%' }}
+            >+ Add Category</button>
+          </div>
+        )}
 
         {/* Social */}
         <div style={S.section}>

@@ -96,6 +96,19 @@ ${svcCards}
 
 ${hasPhotos ? photoSection : ''}
 
+${form.hasMenu ? `  <!-- Menu Teaser -->
+  <section class="py-16 px-4 bg-gray-50 text-center">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="font-display text-3xl font-bold text-gray-900 mb-3 reveal">Our Menu</h2>
+      <p class="text-gray-500 mb-8 reveal">Explore our full selection of dishes, drinks, and specials.</p>
+      <a href="/menu/"
+        class="inline-block font-bold px-10 py-4 rounded-lg text-lg transition-all hover:scale-105"
+        style="background:var(--color-accent);color:#fff">
+        View Full Menu →
+      </a>
+    </div>
+  </section>` : ''}
+
   <!-- Why Choose Us -->
   <section class="py-20 px-4 bg-white">
     <div class="max-w-5xl mx-auto">
@@ -470,6 +483,53 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <h1>Terms of Service</h1>
     <p>Last updated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
     <p>By using our services, you agree to these terms. Services are provided as described in our estimates. Payment is due upon completion unless otherwise arranged. We are not liable for pre-existing conditions not disclosed at time of estimate.</p>
+  </div>
+</BaseLayout>
+`
+}
+
+export function genMenuPage(form) {
+  const { businessName, city, state } = form
+  return `---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { business } from '../data/business';
+import { menu } from '../data/menu';
+---
+<BaseLayout
+  title={'Menu | ' + business.name}
+  description={'Full menu for ' + business.name + ' in ${city || ''}, ${state || ''}'}
+>
+  <div class="max-w-4xl mx-auto px-4 py-16">
+    <div class="text-center mb-12">
+      <h1 class="font-display text-5xl font-bold text-gray-900 mb-3">{business.name}</h1>
+      <p class="text-gray-500 text-lg">Menu</p>
+    </div>
+    {menu.map(cat => (
+      <div class="mb-12">
+        <div class="flex items-center gap-4 mb-6">
+          <h2 class="font-display text-2xl font-bold text-gray-900">{cat.category}</h2>
+          <div class="flex-1 h-px bg-gray-200"></div>
+        </div>
+        <div class="space-y-4">
+          {cat.items.map(item => (
+            <div class="flex justify-between items-start gap-6 py-3 border-b border-gray-100">
+              <div class="flex-1">
+                <span class="font-semibold text-gray-900">{item.name}</span>
+                {item.desc && <p class="text-sm text-gray-500 mt-0.5">{item.desc}</p>}
+              </div>
+              <span class="font-bold text-lg flex-shrink-0" style="color:var(--color-accent)">{item.price}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+    <div class="mt-16 text-center">
+      <a href={'tel:' + business.phone}
+        class="inline-block font-bold px-10 py-4 rounded-lg text-lg transition-all hover:scale-105"
+        style="background:var(--color-accent);color:#fff">
+        Call to Order — {business.phone}
+      </a>
+    </div>
   </div>
 </BaseLayout>
 `

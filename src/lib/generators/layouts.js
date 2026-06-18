@@ -133,6 +133,7 @@ import { services } from '../data/services';
         </div>
       </div>
       <a href="/about/" class="text-gray-600 hover:text-gray-900">About</a>
+      ${form.hasMenu ? '<a href="/menu/" class="text-gray-600 hover:text-gray-900">Menu</a>' : ''}
       <a href="/contact/" class="text-gray-600 hover:text-gray-900">Contact</a>
     </nav>
     <div class="flex items-center gap-3">
@@ -151,6 +152,7 @@ import { services } from '../data/services';
     <a href="/" class="block py-3 text-gray-700 border-b border-gray-100 font-medium">Home</a>
     <a href="/services/" class="block py-3 text-gray-700 border-b border-gray-100 font-medium">Services</a>
     <a href="/about/" class="block py-3 text-gray-700 border-b border-gray-100 font-medium">About</a>
+    ${form.hasMenu ? '<a href="/menu/" class="block py-3 text-gray-700 border-b border-gray-100 font-medium">Menu</a>' : ''}
     <a href="/contact/" class="block py-3 text-gray-700 font-medium">Contact</a>
   </div>
 </header>

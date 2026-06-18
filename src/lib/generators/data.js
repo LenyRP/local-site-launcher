@@ -53,3 +53,13 @@ export function genAreasTs(areasInput, city) {
 
   return `export const areas = [\n${rows}\n] as const;\n\nexport type Area = typeof areas[number];\n`
 }
+
+export function genMenuTs(menu) {
+  const rows = menu.map(cat => `  {
+    category: ${js(cat.category)},
+    items: [
+      ${cat.items.map(item => `{ name: ${js(item.name)}, price: ${js(item.price)}, desc: ${js(item.desc || '')} }`).join(',\n      ')}
+    ],
+  }`).join(',\n')
+  return `export const menu = [\n${rows}\n] as const;\n\nexport type MenuCategory = typeof menu[number];\n`
+}
