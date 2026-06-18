@@ -42,6 +42,8 @@ const EMPTY_FORM = {
   whatsapp: '',
   formspreeId: '',
   videoUrl: '',
+  gaId: '',
+  priceRange: '',
 }
 
 const DEFAULT_HOURS = [
@@ -344,11 +346,19 @@ export default function SiteGenerator({ prefill }) {
             <label style={S.label}>YouTube Video URL <span style={{ fontWeight: 400, color: 'var(--text-dim)' }}>(optional — embedded on home page)</span></label>
             <input style={S.input} value={form.videoUrl} onChange={e => set('videoUrl', e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
           </div>
+          <div style={S.row}>
+            <label style={S.label}>Google Analytics ID <span style={{ fontWeight: 400, color: 'var(--text-dim)' }}>(optional — e.g. G-XXXXXXXXXX)</span></label>
+            <input style={S.input} value={form.gaId} onChange={e => set('gaId', e.target.value)} placeholder="G-XXXXXXXXXX" />
+          </div>
         </div>
 
         {/* Branding */}
         <div style={S.section}>
           <div style={S.sectionTitle}>Branding</div>
+          <div style={S.row}>
+            <label style={S.label}>Price Range <span style={{ fontWeight: 400, color: 'var(--text-dim)' }}>(optional — e.g. $, $$, $$$, or "$50-$200")</span></label>
+            <input style={S.input} value={form.priceRange} onChange={e => set('priceRange', e.target.value)} placeholder="$$" maxLength={20} />
+          </div>
           <div style={S.row}>
             <label style={S.label}>Accent Color</label>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>

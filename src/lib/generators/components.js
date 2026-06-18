@@ -1,6 +1,39 @@
 // Generates Astro component files
 
-export function genSchemaCmp() {
+function getNicheSchemaType(niche) {
+  const map = {
+    'restaurant': 'Restaurant', 'cafe': 'CafeOrCoffeeShop', 'bakery': 'Bakery',
+    'pizza': 'Restaurant', 'diner': 'Restaurant', 'seafood': 'Restaurant',
+    'bar': 'BarOrPub', 'brewery': 'Brewery', 'food-truck': 'Restaurant', 'catering': 'FoodEstablishment',
+    'dentist': 'Dentist', 'orthodontist': 'Dentist',
+    'attorney': 'Attorney', 'real-estate': 'RealEstateAgent',
+    'auto-repair': 'AutoRepair', 'auto-detailing': 'AutoWash',
+    'gym': 'SportsClub', 'yoga': 'SportsClub', 'personal-trainer': 'SportsClub',
+    'salon': 'HairSalon', 'barbershop': 'HairSalon', 'spa': 'DaySpa', 'nail-salon': 'NailSalon',
+    'veterinarian': 'VeterinaryCare', 'pet-grooming': 'PetStore',
+    'hotel': 'Hotel', 'bed-breakfast': 'BedAndBreakfast',
+    'electrician': 'Electrician', 'plumbing': 'Plumber', 'locksmith': 'Locksmith',
+    'moving': 'MovingCompany', 'roofing': 'RoofingContractor',
+    'chiropractor': 'Chiropractor',
+  }
+  return map[niche] || 'LocalBusiness'
+}
+
+export function genSchemaCmp(form = {}) {
+  const reviews = (form._reviews || []).filter(r => r.text && r.name)
+  const avgRating = reviews.length
+    ? (reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length).toFixed(1)
+    : null
+  const schemaType = getNicheSchemaType(form.serviceType)
+  const hoursEntries = (form._hours || []).filter(h => !h.closed && h.open && h.close)
+
+  const hoursSpec = hoursEntries.map(h => ({
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: h.day,
+    opens: h.open,
+    closes: h.close,
+  }))
+
   return `---
 import { business } from '../data/business';
 import { services } from '../data/services';
@@ -8,7 +41,7 @@ import { areas } from '../data/areas';
 
 const schema = {
   '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
+  '@type': ${JSON.stringify(schemaType)},
   name: business.name,
   telephone: business.phone,
   email: business.email || undefined,
@@ -29,7 +62,16 @@ const schema = {
       '@type': 'Offer',
       itemOffered: { '@type': 'Service', name: s.title, description: s.desc },
     })),
-  },
+  },${avgRating ? `
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '${avgRating}',
+    reviewCount: ${reviews.length},
+    bestRating: '5',
+    worstRating: '1',
+  },` : ''}${hoursSpec.length > 0 ? `
+  openingHoursSpecification: ${JSON.stringify(hoursSpec, null, 2)},` : ''}${form.priceRange ? `
+  priceRange: ${JSON.stringify(form.priceRange)},` : ''}
 };
 ---
 <script type="application/ld+json" set:html={JSON.stringify(schema)} />

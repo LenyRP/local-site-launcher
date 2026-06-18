@@ -279,7 +279,8 @@ ${statsHtml}
 `
 }
 
-export function genServicePage(services, faqs) {
+export function genServicePage(services, faqs, form = {}) {
+  const cityState = (form.city || '') + ', ' + (form.state || 'FL')
   return `---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CTASection from '../../components/CTASection.astro';
@@ -294,7 +295,10 @@ export function getStaticPaths() {
 
 const { service } = Astro.props;
 ---
-<BaseLayout title={service.title + ' | ' + business.name} description={service.desc}>
+<BaseLayout
+  title={service.title + ' in ' + ${JSON.stringify(cityState)} + ' | ' + ${JSON.stringify(form.businessName || '')}}
+  description={${JSON.stringify('Professional ')} + service.title.toLowerCase() + ${JSON.stringify(' in ' + cityState + '. ' + (form.description || '').slice(0, 120) + ' Call ' + (form.phone || '') + ' for a free estimate.')}}
+>
   <div class="max-w-4xl mx-auto px-4 py-12">
     <Breadcrumbs crumbs={[
       { label: 'Home', href: '/' },
@@ -317,7 +321,7 @@ const { service } = Astro.props;
 `
 }
 
-export function genAreaPage() {
+export function genAreaPage(form = {}) {
   return `---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CTASection from '../../components/CTASection.astro';
@@ -333,8 +337,9 @@ export function getStaticPaths() {
 const { area } = Astro.props;
 ---
 <BaseLayout
-  title={business.name + ' in ' + area.city + ', ' + business.state}
-  description={'Professional ' + business.name.toLowerCase() + ' serving ' + area.city + '. Licensed, insured. Call ' + business.phone + ' for a free estimate.'}>
+  title={${JSON.stringify(form.businessName || '')} + ' — ' + area.city + ', ' + ${JSON.stringify(form.state || 'FL')}}
+  description={${JSON.stringify('Serving ' + (form.city || '') + ' and ')} + area.city + ${JSON.stringify('. Professional ' + (form.description || '').slice(0, 80).toLowerCase() + '. Call ' + (form.phone || '') + '.')}}
+>
   <div class="max-w-4xl mx-auto px-4 py-12">
     <Breadcrumbs crumbs={[
       { label: 'Home', href: '/' },
@@ -360,7 +365,7 @@ const { area } = Astro.props;
 `
 }
 
-export function genMatrixPage() {
+export function genMatrixPage(form = {}) {
   return `---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import CTASection from '../../../components/CTASection.astro';
@@ -380,8 +385,8 @@ export function getStaticPaths() {
 }
 
 const { service, area } = Astro.props;
-const title = service.title + ' in ' + area.city + ' | ' + business.name;
-const desc = 'Need ' + service.title.toLowerCase() + ' in ' + area.city + '? ' + business.name + ' provides professional service. Free estimates — call ' + business.phone;
+const title = service.title + ' in ' + area.city + ', ' + ${JSON.stringify(form.state || 'FL')} + ' | ' + ${JSON.stringify(form.businessName || '')};
+const desc = 'Looking for ' + service.title.toLowerCase() + ' in ' + area.city + ${JSON.stringify(', ' + (form.state || 'FL') + '? ' + (form.businessName || '') + ' provides expert service. Call ' + (form.phone || '') + ' today.')};
 ---
 <BaseLayout title={title} description={desc}>
   <div class="max-w-4xl mx-auto px-4 py-12">

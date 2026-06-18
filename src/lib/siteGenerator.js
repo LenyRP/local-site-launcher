@@ -64,7 +64,7 @@ export function generateAstroSite(formRaw, images = {}) {
   // Components
   files['src/components/Header.astro'] = genHeader(form)
   files['src/components/Footer.astro'] = genFooter(form)
-  files['src/components/SchemaLocalBusiness.astro'] = genSchemaCmp()
+  files['src/components/SchemaLocalBusiness.astro'] = genSchemaCmp(form)
   files['src/components/CTASection.astro'] = genCTACmp()
   files['src/components/FAQAccordion.astro'] = genFAQCmp()
   files['src/components/Breadcrumbs.astro'] = genBreadcrumbsCmp()
@@ -74,10 +74,10 @@ export function generateAstroSite(formRaw, images = {}) {
   files['src/pages/about.astro'] = genAboutPage(form)
   files['src/pages/contact.astro'] = genContactPage(form)
   files['src/pages/services/index.astro'] = genServicesIndexPage()
-  files['src/pages/services/[service].astro'] = genServicePage(services, faqs)
+  files['src/pages/services/[service].astro'] = genServicePage(services, faqs, form)
   files['src/pages/areas/index.astro'] = genAreasIndexPage()
-  files['src/pages/areas/[area].astro'] = genAreaPage()
-  files['src/pages/services/[service]/[area].astro'] = genMatrixPage()
+  files['src/pages/areas/[area].astro'] = genAreaPage(form)
+  files['src/pages/services/[service]/[area].astro'] = genMatrixPage(form)
   files['src/pages/privacy.astro'] = genPrivacyPage(form.businessName)
   files['src/pages/terms.astro'] = genTermsPage(form.businessName)
 

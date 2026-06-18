@@ -91,12 +91,31 @@ const siteUrl = ${JSON.stringify('https://' + (domain || 'example.com'))};
   <meta name="description" content={desc} />
   <link rel="canonical" href={canonical} />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  ${form.hasHero ? '<link rel="preload" as="image" href="/images/hero.jpg" />' : ''}
   <meta property="og:title" content={title} />
   <meta property="og:description" content={desc} />
   <meta property="og:type" content="website" />
   <meta property="og:url" content={canonical} />
   <meta property="og:site_name" content={siteName} />
+  <meta property="og:image" content={${form.hasHero ? `'https://' + ${JSON.stringify(domain || 'example.com')} + '/images/hero.jpg'` : `'https://' + ${JSON.stringify(domain || 'example.com')} + '/favicon.svg'`}} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="en_US" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={desc} />
+  ${form.hasHero ? `<meta name="twitter:image" content=${"'https://' + " + JSON.stringify(domain || 'example.com') + " + '/images/hero.jpg'"} />` : ''}
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="${form.accentColor || '#0dce7e'}" />
   <SchemaLocalBusiness />
+  ${form.gaId ? `<!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${form.gaId}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${form.gaId}');
+  </script>` : ''}
 </head>
 <body class="bg-white text-gray-900" style="padding-bottom:88px">
   ${form.offerBanner ? `<div id="offer-banner" class="relative py-3 px-6 text-center text-sm font-semibold text-white" style="background:var(--color-accent)">
