@@ -5,6 +5,18 @@ import { NICHE_GROUPS, slugify, getNicheData } from '../lib/niches.js'
 
 const FOOD_NICHES = new Set(['restaurant', 'cafe', 'bakery', 'food-truck', 'catering', 'bar', 'brewery', 'pizza', 'diner', 'seafood'])
 
+function defaultSectionTitles(niche) {
+  const isFood = FOOD_NICHES.has(niche)
+  return {
+    services: isFood ? 'What We Serve' : 'Our Services',
+    gallery: isFood ? 'Take a Look Inside' : 'Our Work',
+    whyUs: isFood ? 'Why Dine With Us' : 'Why Choose Us',
+    areas: isFood ? 'Find Us' : 'Service Areas',
+    faqs: 'Frequently Asked Questions',
+    reviews: 'What Our Customers Say',
+  }
+}
+
 const S = {
   wrap: { display: 'flex', height: 'calc(100vh - 56px)', overflow: 'hidden' },
   left: { width: 420, minWidth: 320, borderRight: '1px solid var(--border)', overflowY: 'auto', padding: 24, flexShrink: 0 },
@@ -96,6 +108,8 @@ export default function SiteGenerator({ prefill }) {
   const [showSettings, setShowSettings] = useState(false)
   const [customServices, setCustomServices] = useState(null)
   const [menu, setMenu] = useState([])
+  const [sectionTitles, setSectionTitles] = useState(() => defaultSectionTitles('pressure-washing'))
+  const [reviews, setReviews] = useState([])
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const setImg = (k, v) => setImages(i => ({ ...i, [k]: v }))
@@ -141,7 +155,7 @@ export default function SiteGenerator({ prefill }) {
   function handleGenerate() {
     if (!form.businessName) { alert('Enter a business name first.'); return }
     const effectiveServices = customServices || getNicheData(form.serviceType || 'pressure-washing').services
-    const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu }, images)
+    const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu, _sectionTitles: sectionTitles, _reviews: reviews }, images)
     setGenerated(files)
     setSelectedFile(Object.keys(files).find(k => !files[k].startsWith('data:')))
     setPublishResult(null)
@@ -149,7 +163,7 @@ export default function SiteGenerator({ prefill }) {
 
   function handlePreview() {
     const effectiveServices = customServices || getNicheData(form.serviceType || 'pressure-washing').services
-    const html = generatePreviewHTML({ ...form, _customServices: effectiveServices, _menu: menu }, images)
+    const html = generatePreviewHTML({ ...form, _customServices: effectiveServices, _menu: menu, _sectionTitles: sectionTitles, _reviews: reviews }, images)
     const blob = new Blob([html], { type: 'text/html' })
     window.open(URL.createObjectURL(blob), '_blank')
   }
@@ -179,7 +193,7 @@ export default function SiteGenerator({ prefill }) {
     setPublishResult(null)
     try {
       const effectiveServices = customServices || getNicheData(form.serviceType || 'pressure-washing').services
-      const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu }, images)
+      const files = generateAstroSite({ ...form, _customServices: effectiveServices, _menu: menu, _sectionTitles: sectionTitles, _reviews: reviews }, images)
       const repoName = slugify(form.businessName || 'local-site') + '-site'
       const textFiles = Object.entries(files)
         .filter(([, v]) => !v.startsWith('data:'))
@@ -263,6 +277,7 @@ export default function SiteGenerator({ prefill }) {
               const nd = getNicheData(newNiche)
               setCustomServices(nd.services.map(s => ({ ...s })))
               setMenu([])
+              setSectionTitles(defaultSectionTitles(newNiche))
             }}>
               {NICHE_GROUPS.map(g => (
                 <optgroup key={g.label} label={g.label}>
@@ -372,6 +387,75 @@ export default function SiteGenerator({ prefill }) {
             }}
             style={{ background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 6, color: 'var(--accent)', cursor: 'pointer', padding: '8px 16px', fontSize: 13, fontWeight: 600, width: '100%' }}
           >+ Add Service</button>
+        </div>
+
+        {/* Section Labels */}
+        <div style={S.section}>
+          <div style={S.sectionTitle}>Section Labels</div>
+          <p style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 12 }}>
+            Rename any section heading on your site.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {[
+              ['services', 'Services Section'],
+              ['gallery', 'Photo Gallery'],
+              ['whyUs', 'Why Choose Us'],
+              ['areas', 'Areas / Location'],
+              ['faqs', 'FAQ Section'],
+              ['reviews', 'Reviews Section'],
+            ].map(([key, label]) => (
+              <div key={key}>
+                <label style={S.label}>{label}</label>
+                <input
+                  style={S.input}
+                  value={sectionTitles[key]}
+                  onChange={e => setSectionTitles(t => ({ ...t, [key]: e.target.value }))}
+                  placeholder={defaultSectionTitles(form.serviceType)[key]}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Customer Reviews */}
+        <div style={S.section}>
+          <div style={S.sectionTitle}>Customer Reviews</div>
+          <p style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 12 }}>
+            Add reviews to display on your site. Paste directly from Google or enter manually.
+          </p>
+          {reviews.map((r, i) => (
+            <div key={i} style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, padding: 14, marginBottom: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px auto', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                <input
+                  style={S.input}
+                  value={r.name}
+                  placeholder="Reviewer name"
+                  onChange={e => setReviews(reviews.map((rv, idx) => idx === i ? { ...rv, name: e.target.value } : rv))}
+                />
+                <select
+                  style={{ ...S.input, cursor: 'pointer' }}
+                  value={r.rating}
+                  onChange={e => setReviews(reviews.map((rv, idx) => idx === i ? { ...rv, rating: Number(e.target.value) } : rv))}
+                >
+                  {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} ★</option>)}
+                </select>
+                <button
+                  onClick={() => setReviews(reviews.filter((_, idx) => idx !== i))}
+                  style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 10px', fontSize: 14 }}
+                >✕</button>
+              </div>
+              <textarea
+                style={{ ...S.input, width: '100%', minHeight: 72, resize: 'vertical', fontFamily: 'inherit' }}
+                value={r.text}
+                placeholder="Review text (paste from Google or type it out)..."
+                onChange={e => setReviews(reviews.map((rv, idx) => idx === i ? { ...rv, text: e.target.value } : rv))}
+              />
+            </div>
+          ))}
+          <button
+            onClick={() => setReviews([...reviews, { name: '', rating: 5, text: '', source: 'Google' }])}
+            style={{ background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 6, color: 'var(--accent)', cursor: 'pointer', padding: '8px 16px', fontSize: 13, fontWeight: 600, width: '100%' }}
+          >+ Add Review</button>
         </div>
 
         {/* Menu Builder */}

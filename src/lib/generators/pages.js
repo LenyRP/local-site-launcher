@@ -1,10 +1,45 @@
 // Generates Astro page files
 const js = (s) => JSON.stringify(String(s || ''))
 
+const FOOD_NICHES = new Set(['restaurant', 'cafe', 'bakery', 'food-truck', 'catering', 'bar', 'brewery', 'pizza', 'diner', 'seafood'])
+
+function genReviewsSection(reviews, heading) {
+  const cards = reviews.filter(r => r.text && r.name).map((r, i) => {
+    const stars = '★'.repeat(Math.min(5, Math.max(1, r.rating || 5)))
+    const empty = '☆'.repeat(5 - (r.rating || 5))
+    return `    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-3 reveal reveal-delay-${i + 1}">
+      <div class="text-yellow-400 text-xl">${stars}${empty}</div>
+      <p class="text-gray-700 italic leading-relaxed">&ldquo;${r.text}&rdquo;</p>
+      <div class="mt-auto">
+        <div class="font-semibold text-gray-900">— ${r.name}</div>
+        ${r.source ? `<div class="text-xs text-gray-400 mt-0.5">${r.source}</div>` : ''}
+      </div>
+    </div>`
+  }).join('\n')
+  return `  <!-- Reviews -->
+  <section class="py-20 px-4 bg-gray-50">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="font-display text-4xl font-bold text-center text-gray-900 mb-3 reveal">${heading}</h2>
+      <p class="text-center text-gray-500 mb-12 reveal">Real words from real customers</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+${cards}
+      </div>
+    </div>
+  </section>`
+}
+
 export function genHomePage(form, services, faqs) {
   const { businessName, city, state, description, tagline, phone, accentColor } = form
   const heroImg = form.hasHero ? '/images/hero.jpg' : ''
   const hasPhotos = form.hasPhoto1 || form.hasPhoto2 || form.hasPhoto3
+  const st = form._sectionTitles || {}
+  const isFood = FOOD_NICHES.has(form.serviceType)
+  const svcHeading = st.services || (isFood ? 'What We Serve' : 'Our Services')
+  const galleryHeading = st.gallery || (isFood ? 'Take a Look Inside' : 'Our Work')
+  const whyUsHeading = st.whyUs || (isFood ? 'Why Dine With Us' : 'Why Choose Us')
+  const areasHeading = st.areas || (isFood ? 'Find Us' : 'Service Areas')
+  const faqHeading = st.faqs || 'Frequently Asked Questions'
+  const reviewsHeading = st.reviews || 'What Our Customers Say'
 
   const svcCards = services.map((s, i) =>
     `    <div class="service-card reveal reveal-delay-${i + 1}">
@@ -18,7 +53,7 @@ export function genHomePage(form, services, faqs) {
   const photoSection = `  <!-- Photo Gallery -->
   <section class="py-16 px-4 bg-white">
     <div class="max-w-6xl mx-auto">
-      <h2 class="font-display text-3xl font-bold text-center text-gray-900 mb-10 reveal">Our Work</h2>
+      <h2 class="font-display text-3xl font-bold text-center text-gray-900 mb-10 reveal">${galleryHeading}</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         ${form.hasPhoto1 ? '<div class="overflow-hidden rounded-xl aspect-video reveal reveal-delay-1"><img src="/images/photo1.jpg" alt={business.name} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" /></div>' : ''}
         ${form.hasPhoto2 ? '<div class="overflow-hidden rounded-xl aspect-video reveal reveal-delay-2"><img src="/images/photo2.jpg" alt={business.name} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" /></div>' : ''}
@@ -66,11 +101,17 @@ const faqs = [
   <!-- Trust Bar -->
   <div class="bg-gray-900 text-white py-4 px-4">
     <div class="max-w-5xl mx-auto flex flex-wrap justify-center gap-6 text-sm font-medium">
+      ${isFood ? `
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">🏠</span> Family-Owned</span>
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">⭐</span> Top-Rated</span>
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">🍳</span> Fresh Daily</span>
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">📍</span> Locally Owned</span>
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">❤️</span> Community Favorite</span>` : `
       <span class="flex items-center gap-2"><span style="color:var(--color-accent)">✓</span> Licensed &amp; Insured</span>
       <span class="flex items-center gap-2"><span style="color:var(--color-accent)">★</span> Top-Rated Local</span>
       <span class="flex items-center gap-2"><span style="color:var(--color-accent)">⚡</span> Fast Response</span>
       <span class="flex items-center gap-2"><span style="color:var(--color-accent)">💬</span> Free Estimates</span>
-      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">📍</span> Locally Owned</span>
+      <span class="flex items-center gap-2"><span style="color:var(--color-accent)">📍</span> Locally Owned</span>`}
     </div>
   </div>
 
@@ -78,8 +119,8 @@ const faqs = [
   <section class="py-20 px-4 bg-gray-50">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-12">
-        <h2 class="font-display text-4xl font-bold text-gray-900 mb-3 reveal">Our Services</h2>
-        <p class="text-gray-500 max-w-xl mx-auto reveal reveal-delay-1">Professional, reliable service backed by experience and a satisfaction guarantee.</p>
+        <h2 class="font-display text-4xl font-bold text-gray-900 mb-3 reveal">${svcHeading}</h2>
+        <p class="text-gray-500 max-w-xl mx-auto reveal reveal-delay-1">${isFood ? 'Delicious food made with care — served fresh every day.' : 'Professional, reliable service backed by experience and a satisfaction guarantee.'}</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 ${svcCards}
@@ -114,15 +155,20 @@ ${form.hasMenu ? `  <!-- Menu Teaser -->
     <div class="max-w-5xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div>
-          <p class="text-accent font-semibold uppercase tracking-widest text-sm mb-3">Why Choose Us</p>
+          <p class="text-accent font-semibold uppercase tracking-widest text-sm mb-3">${whyUsHeading}</p>
           <h2 class="font-display text-4xl font-bold text-gray-900 mb-5 reveal">${businessName}</h2>
           <p class="text-gray-600 leading-relaxed mb-8">${description || 'We take pride in delivering quality service to every customer. Local expertise, honest pricing, and a commitment to your satisfaction on every job.'}</p>
           <div class="space-y-4">
             {[
+              ${isFood ? `
+              'Family-owned and operated',
+              'Made-from-scratch recipes daily',
+              'Fresh, locally sourced ingredients',
+              'Open 7 days a week — come as you are',` : `
               'Fully licensed and insured for your protection',
               'Transparent pricing — no surprises',
               'Fast response and scheduling',
-              'Satisfaction guaranteed on every job',
+              'Satisfaction guaranteed on every job',`}
             ].map(item => (
               <div class="flex items-start gap-3">
                 <span class="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-bold" style="background:var(--color-accent)">✓</span>
@@ -135,12 +181,17 @@ ${form.hasMenu ? `  <!-- Menu Teaser -->
           </a>
         </div>
         <div class="grid grid-cols-2 gap-4">
-          {[
+          {${isFood ? `[
+            { num: '5★', label: 'Customer Rating' },
+            { num: 'Fresh', label: 'Made Daily' },
+            { num: 'Local', label: 'Community-First' },
+            { num: 'Family', label: 'Owned & Operated' },
+          ]` : `[
             { num: '5★', label: 'Average Rating' },
             { num: '100%', label: 'Satisfaction Goal' },
             { num: '24/7', label: 'Available' },
             { num: 'Free', label: 'Estimates' },
-          ].map(stat => (
+          ]`}.map(stat => (
             <div class="bg-gray-50 rounded-2xl p-6 text-center reveal">
               <div class="text-3xl font-bold mb-1" style="color:var(--color-accent)">{stat.num}</div>
               <div class="text-sm text-gray-500 font-medium">{stat.label}</div>
@@ -154,8 +205,8 @@ ${form.hasMenu ? `  <!-- Menu Teaser -->
   <!-- Service Areas -->
   <section class="py-16 px-4 bg-gray-50">
     <div class="max-w-4xl mx-auto text-center">
-      <h2 class="font-display text-3xl font-bold text-gray-900 mb-2 reveal">Service Areas</h2>
-      <p class="text-gray-500 mb-8 reveal">Proudly serving the following communities</p>
+      <h2 class="font-display text-3xl font-bold text-gray-900 mb-2 reveal">${areasHeading}</h2>
+      <p class="text-gray-500 mb-8 reveal">${isFood ? 'We\'re right in your neighborhood' : 'Proudly serving the following communities'}</p>
       <div class="flex flex-wrap justify-center gap-3">
         {areas.map(a => (
           <a href={'/areas/' + a.slug + '/'} class="px-5 py-2.5 rounded-full text-sm font-semibold border-2 transition-all duration-200 hover:scale-105" style="border-color:var(--color-accent);color:var(--color-accent);background:var(--color-accent-light)">
@@ -169,10 +220,12 @@ ${form.hasMenu ? `  <!-- Menu Teaser -->
   <!-- FAQs -->
   <section class="py-20 px-4 bg-white">
     <div class="max-w-3xl mx-auto">
-      <h2 class="font-display text-4xl font-bold text-gray-900 mb-10 text-center reveal">Frequently Asked Questions</h2>
+      <h2 class="font-display text-4xl font-bold text-gray-900 mb-10 text-center reveal">${faqHeading}</h2>
       <FAQAccordion faqs={faqs} />
     </div>
   </section>
+
+  ${form._reviews && form._reviews.length > 0 ? genReviewsSection(form._reviews, reviewsHeading) : ''}
 
   <CTASection />
 </BaseLayout>
