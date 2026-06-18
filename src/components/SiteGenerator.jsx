@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import JSZip from 'jszip'
 import { generateAstroSite, generatePreviewHTML } from '../lib/siteGenerator.js'
-import { NICHES, slugify } from '../lib/niches.js'
+import { NICHE_GROUPS, slugify } from '../lib/niches.js'
 
 const S = {
   wrap: { display: 'flex', height: 'calc(100vh - 56px)', overflow: 'hidden' },
@@ -251,7 +251,11 @@ export default function SiteGenerator({ prefill }) {
           <div style={S.row}>
             <label style={S.label}>Service Type</label>
             <select style={S.input} value={form.serviceType} onChange={e => set('serviceType', e.target.value)}>
-              {NICHES.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
+              {NICHE_GROUPS.map(g => (
+                <optgroup key={g.label} label={g.label}>
+                  {g.niches.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
+                </optgroup>
+              ))}
             </select>
           </div>
           <Input label="Description" value={form.description} onChange={e => set('description', e.target.value)} />

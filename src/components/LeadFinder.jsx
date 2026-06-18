@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NICHES } from '../lib/niches.js'
+import { NICHE_GROUPS } from '../lib/niches.js'
 
 const S = {
   wrap: { padding: 32, maxWidth: 900, margin: '0 auto' },
@@ -72,7 +72,11 @@ export default function LeadFinder({ onBuildSite }) {
           <div>
             <label style={S.label}>Niche</label>
             <select style={{ ...S.input, width: '100%' }} value={niche} onChange={e => setNiche(e.target.value)}>
-              {NICHES.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
+              {NICHE_GROUPS.map(g => (
+                <optgroup key={g.label} label={g.label}>
+                  {g.niches.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
+                </optgroup>
+              ))}
             </select>
           </div>
           <div>
