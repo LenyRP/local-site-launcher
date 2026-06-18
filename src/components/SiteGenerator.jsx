@@ -297,9 +297,23 @@ export default function SiteGenerator({ prefill }) {
           <div style={S.row}>
             <label style={S.label}>Accent Color</label>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <input type="color" value={form.accentColor} onChange={e => set('accentColor', e.target.value)}
-                style={{ width: 48, height: 36, borderRadius: 4, border: '1px solid var(--border)', cursor: 'pointer', background: 'none' }} />
-              <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>{form.accentColor}</span>
+              <input type="color" value={/^#[0-9a-fA-F]{6}$/.test(form.accentColor) ? form.accentColor : '#0dce7e'}
+                onChange={e => set('accentColor', e.target.value)}
+                style={{ width: 48, height: 36, borderRadius: 4, border: '1px solid var(--border)', cursor: 'pointer', background: 'none', flexShrink: 0 }} />
+              <input
+                type="text"
+                value={form.accentColor}
+                onChange={e => {
+                  const v = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value
+                  set('accentColor', v)
+                }}
+                onBlur={e => {
+                  if (!/^#[0-9a-fA-F]{6}$/.test(form.accentColor)) set('accentColor', '#0dce7e')
+                }}
+                placeholder="#0dce7e"
+                maxLength={7}
+                style={{ ...S.input, width: 100, fontFamily: 'monospace', fontSize: 14 }}
+              />
             </div>
           </div>
           <ImageUpload label="Logo" value={images.logo} onChange={v => setImg('logo', v)} maxDim={400} />
