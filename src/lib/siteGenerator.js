@@ -115,12 +115,13 @@ header a.cta{background:${accent};color:#fff;padding:8px 18px;border-radius:6px;
 section{padding:60px 24px}
 .container{max-width:1100px;margin:0 auto}
 h2{font-size:28px;font-weight:700;margin-bottom:24px;text-align:center}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px}
 .card h3{font-size:16px;font-weight:700;margin-bottom:8px}
 .card p{font-size:13px;color:#6b7280;line-height:1.6}
 .areas{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .area-pill{background:#f3f4f6;padding:8px 18px;border-radius:999px;font-size:13px;font-weight:600}
+@media(max-width:768px){header{padding:0 16px}.grid{grid-template-columns:1fr}section{padding:40px 16px}.hero{padding:60px 16px}.hero h1{font-size:clamp(22px,6vw,36px)}.hero p{font-size:15px}}
 footer{background:#111;color:#9ca3af;padding:40px 24px;text-align:center;font-size:13px}
 .preview-badge{position:fixed;bottom:16px;right:16px;background:#1e293b;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;font-family:monospace;z-index:100}
 </style>
@@ -128,7 +129,7 @@ footer{background:#111;color:#9ca3af;padding:40px 24px;text-align:center;font-si
 <body>
 <div class="preview-badge">PREVIEW MODE</div>
 <header>
-  <span class="brand">${form.businessName}</span>
+  ${images.logo ? `<img src="${images.logo}" alt="${form.businessName}" style="height:36px;width:auto;object-fit:contain;display:block">` : `<span class="brand">${form.businessName}</span>`}
   <a href="tel:${form.phone}" class="cta">${form.phone || 'Call Now'}</a>
 </header>
 <div class="hero">

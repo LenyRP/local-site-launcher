@@ -72,7 +72,10 @@ import { services } from '../data/services';
 ---
 <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
   <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-16">
-    <a href="/" class="font-bold text-xl text-gray-900">{business.name}</a>
+    <a href="/" class="flex items-center gap-3 min-w-0">
+      ${form.hasLogo ? '<img src="/images/logo.png" alt={business.name} class="h-10 w-auto object-contain flex-shrink-0" />' : ''}
+      <span class="font-bold text-xl text-gray-900 truncate">{business.name}</span>
+    </a>
     <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
       <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
       <div class="relative group">
@@ -88,12 +91,30 @@ import { services } from '../data/services';
       <a href="/about/" class="text-gray-600 hover:text-gray-900">About</a>
       <a href="/contact/" class="text-gray-600 hover:text-gray-900">Contact</a>
     </nav>
-    <a href={'tel:' + business.phone}
-      class="bg-accent text-white px-4 py-2 rounded font-semibold text-sm hover:bg-accent-dark transition-colors">
-      {business.phone}
-    </a>
+    <div class="flex items-center gap-3">
+      <a href={'tel:' + business.phone}
+        class="bg-accent text-white px-4 py-2 rounded font-semibold text-sm hover:bg-accent-dark transition-colors whitespace-nowrap">
+        {business.phone}
+      </a>
+      <button id="nav-toggle" class="md:hidden p-2 rounded text-gray-600 hover:bg-gray-100" aria-label="Menu">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="19" y2="6"/><line x1="3" y1="12" x2="19" y2="12"/><line x1="3" y1="18" x2="19" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div id="mobile-nav" class="hidden md:hidden bg-white border-t border-gray-100 px-4 pb-4">
+    <a href="/" class="block py-3 text-gray-700 border-b border-gray-100 font-medium">Home</a>
+    <a href="/services/" class="block py-3 text-gray-700 border-b border-gray-100 font-medium">Services</a>
+    <a href="/about/" class="block py-3 text-gray-700 border-b border-gray-100 font-medium">About</a>
+    <a href="/contact/" class="block py-3 text-gray-700 font-medium">Contact</a>
   </div>
 </header>
+<script>
+  const btn = document.getElementById('nav-toggle');
+  const nav = document.getElementById('mobile-nav');
+  btn?.addEventListener('click', () => nav?.classList.toggle('hidden'));
+</script>
 `
 }
 
