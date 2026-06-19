@@ -128,6 +128,7 @@ export default function SiteGenerator({ prefill }) {
   const [sectionTitles, setSectionTitles] = useState(() => defaultSectionTitles('pressure-washing'))
   const [reviews, setReviews] = useState([])
   const [hours, setHours] = useState(DEFAULT_HOURS)
+  const [ghlStatus, setGhlStatus] = useState(null)
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const updateHour = (i, field, value) => setHours(h => h.map((r, idx) => idx === i ? { ...r, [field]: value } : r))
@@ -204,6 +205,40 @@ export default function SiteGenerator({ prefill }) {
     a.href = URL.createObjectURL(blob)
     a.download = (form.slug || slugify(form.businessName)) + '.zip'
     a.click()
+  }
+
+  async function handleSendToGHL() {
+    if (!settings.ghlKey || !settings.ghlLocationId) {
+      setGhlStatus({ type: 'error', msg: 'Enter GHL API Key and Location ID in Settings first.' })
+      setShowSettings(true)
+      return
+    }
+    if (!form.businessName) {
+      setGhlStatus({ type: 'error', msg: 'Enter a business name first.' })
+      return
+    }
+    setGhlStatus({ type: 'loading', msg: 'Pushing to GHL...' })
+    try {
+      const res = await fetch('/api/ghl-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ghlApiKey: settings.ghlKey,
+          locationId: settings.ghlLocationId,
+          businessName: form.businessName,
+          phone: form.phone,
+          email: form.email,
+          city: form.city,
+          state: form.state,
+          address: form.address,
+          siteUrl: publishResult?.siteUrl || null,
+        }),
+      }).then(r => r.json())
+      if (res.error) throw new Error(res.error)
+      setGhlStatus({ type: 'success', msg: res.isNew ? 'Contact created' : 'Contact updated', url: res.contactUrl })
+    } catch (e) {
+      setGhlStatus({ type: 'error', msg: e.message })
+    }
   }
 
   async function handlePublish() {
@@ -614,10 +649,32 @@ export default function SiteGenerator({ prefill }) {
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingBottom: 32 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button style={{ ...S.btnPrimary, flex: 1 }} onClick={handleGenerate}>⚡ Generate Site</button>
           <button style={S.btnOutline} onClick={handlePreview} disabled={!form.businessName}>Preview</button>
           <button style={S.btnOutline} onClick={() => setShowSettings(s => !s)}>Settings</button>
+        </div>
+        <div style={{ marginTop: 10, marginBottom: 32 }}>
+          <button
+            style={{ ...S.btnOutline, width: '100%', borderColor: '#7c3aed', color: '#7c3aed', fontWeight: 700 }}
+            onClick={handleSendToGHL}
+            disabled={!form.businessName || ghlStatus?.type === 'loading'}
+          >
+            {ghlStatus?.type === 'loading' ? 'Pushing...' : '→ Send to GHL (Start Outreach)'}
+          </button>
+          {ghlStatus && ghlStatus.type !== 'loading' && (
+            <div style={{
+              marginTop: 8, fontSize: 12, padding: '8px 12px', borderRadius: 6,
+              background: ghlStatus.type === 'success' ? '#0f2b1a' : '#2b0f0f',
+              color: ghlStatus.type === 'success' ? '#4ade80' : '#f87171',
+            }}>
+              {ghlStatus.type === 'success' ? (
+                <>✓ {ghlStatus.msg} — tag <code>ll-interested</code> added → WF01 fires · <a href={ghlStatus.url} target="_blank" rel="noreferrer" style={{ color: '#4ade80' }}>View in GHL</a>{!publishResult?.siteUrl && <span style={{ color: '#fbbf24', marginLeft: 6 }}>(no site URL yet — publish first to include preview link)</span>}</>
+              ) : (
+                `Error: ${ghlStatus.msg}`
+              )}
+            </div>
+          )}
         </div>
 
         {/* Publish Settings */}
@@ -625,6 +682,8 @@ export default function SiteGenerator({ prefill }) {
           <div style={{ background: 'var(--surface2)', borderRadius: 8, padding: 16, marginBottom: 24 }}>
             <div style={S.sectionTitle}>Publish Settings</div>
             {[
+              { k: 'ghlKey', label: 'GHL API Key (pit-...)' },
+              { k: 'ghlLocationId', label: 'GHL Location ID' },
               { k: 'ghToken', label: 'GitHub Token' },
               { k: 'cfToken', label: 'Cloudflare API Token' },
               { k: 'cfAccountId', label: 'Cloudflare Account ID' },
