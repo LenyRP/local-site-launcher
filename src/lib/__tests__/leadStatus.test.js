@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { advanceStatus, deriveReplied, computeCounts, STATUS_ORDER } from '../leadStatus.js'
+import { advanceStatus, deriveReplied, computeCounts, STATUS_ORDER, isClosed, CLOSED, STATUS_META } from '../leadStatus.js'
 
 describe('advanceStatus', () => {
   it('moves forward', () => {
@@ -43,4 +43,28 @@ describe('computeCounts', () => {
 
 describe('STATUS_ORDER', () => {
   it('has five stages', () => { expect(STATUS_ORDER.length).toBe(5) })
+})
+
+describe('closed outcomes', () => {
+  it('isClosed true for won/not_interested only', () => {
+    expect(isClosed('won')).toBe(true)
+    expect(isClosed('not_interested')).toBe(true)
+    expect(isClosed('replied')).toBe(false)
+    expect(isClosed('found')).toBe(false)
+  })
+  it('CLOSED lists both outcomes', () => {
+    expect(CLOSED).toEqual(['won', 'not_interested'])
+  })
+  it('has pill meta for both', () => {
+    expect(STATUS_META.won.label).toBeTruthy()
+    expect(STATUS_META.not_interested.label).toBeTruthy()
+  })
+  it('computeCounts ignores closed leads in actionable buckets', () => {
+    const leads = [{ status: 'won' }, { status: 'not_interested' }, { status: 'found' }]
+    const c = computeCounts(leads)
+    expect(c.sitesToBuild).toBe(1)
+    expect(c.replied).toBe(0)
+    expect(c.awaitingOutreach).toBe(0)
+    expect(c.total).toBe(3)
+  })
 })

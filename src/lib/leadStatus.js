@@ -6,6 +6,8 @@ export const STATUS_META = {
   published: { label: 'Published',  pillBg: '#dbe7ff', pillFg: '#1d4ed8' },
   contacted: { label: 'Contacted',  pillBg: '#fdf0d9', pillFg: '#b8791a' },
   replied:   { label: 'Replied',    pillBg: '#d9f3e1', pillFg: '#15803d' },
+  won:           { label: 'Won',            pillBg: '#d9f3e1', pillFg: '#15803d' },
+  not_interested:{ label: 'Not interested', pillBg: '#eef1f5', pillFg: '#64748b' },
 }
 
 export function advanceStatus(current, next) {
@@ -29,3 +31,6 @@ export function computeCounts(leads) {
   }
   return c
 }
+
+export const CLOSED = ['won', 'not_interested']
+export function isClosed(status) { return CLOSED.includes(status) }
