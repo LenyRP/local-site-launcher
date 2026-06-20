@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Home from './components/Home.jsx'
 import LeadWorkspace from './components/LeadWorkspace.jsx'
 import SettingsPanel, { useSettings } from './components/SettingsPanel.jsx'
@@ -10,12 +10,15 @@ export default function App() {
   const [view, setView] = useState({ name: 'home', leadId: null })
   const [showSettings, setShowSettings] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const ranRef = useRef(false)
 
   useEffect(() => {
+    if (ranRef.current || !settings?.ghlKey || !settings?.ghlLocationId) return
+    ranRef.current = true
     listLeads().then(leads => refreshReplies(leads, settings)).then(updated => {
       if (updated.length) setRefreshKey(k => k + 1)
     })
-  }, []) // run once on load
+  }, [settings]) // run once after settings are available
 
   return (
     <div style={{ minHeight: '100vh' }}>

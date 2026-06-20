@@ -19,4 +19,13 @@ describe('refreshReplies', () => {
     const updated = await refreshReplies([lead], { ghlKey: 'k', ghlLocationId: 'loc' }, async () => ({ json: async () => ({ messages: [] }) }))
     expect(updated).toEqual([])
   })
+
+  it('returns empty array and does not fetch when settings lack ghlKey or ghlLocationId', async () => {
+    const lead = await saveLead(newLead({ status: 'contacted', ghl: { contactId: 'c1', lastOutboundAt: 100 } }))
+    let fetchCalled = false
+    const fakeFetch = async () => { fetchCalled = true; return { json: async () => ({ messages: [] }) } }
+    const updated = await refreshReplies([lead], { /* no ghlKey or ghlLocationId */ }, fakeFetch)
+    expect(updated).toEqual([])
+    expect(fetchCalled).toBe(false)
+  })
 })
