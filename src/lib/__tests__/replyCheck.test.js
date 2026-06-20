@@ -28,4 +28,12 @@ describe('refreshReplies', () => {
     expect(updated).toEqual([])
     expect(fetchCalled).toBe(false)
   })
+
+  it('does not resurrect a closed (won) lead even with a newer inbound', async () => {
+    const lead = await saveLead(newLead({ status: 'won', ghl: { contactId: 'c9', lastOutboundAt: 100 } }))
+    const fakeFetch = async () => ({ json: async () => ({ messages: [{ id: 'm', direction: 'inbound', body: 'hi', ts: 999 }] }) })
+    const updated = await refreshReplies([lead], { ghlKey: 'k', ghlLocationId: 'loc' }, fakeFetch)
+    expect(updated).toEqual([])
+    expect((await getLead(lead.id)).status).toBe('won')
+  })
 })

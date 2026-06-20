@@ -1,5 +1,5 @@
 import { saveLead } from './store.js'
-import { deriveReplied, advanceStatus } from './leadStatus.js'
+import { deriveReplied, advanceStatus, isClosed } from './leadStatus.js'
 
 export async function refreshReplies(leads, settings, fetchImpl = fetch) {
   if (!settings?.ghlKey || !settings?.ghlLocationId) return []
@@ -7,6 +7,7 @@ export async function refreshReplies(leads, settings, fetchImpl = fetch) {
   for (const lead of leads) {
     const contactId = lead.ghl?.contactId
     if (!contactId) continue
+    if (isClosed(lead.status)) continue
     try {
       const r = await fetchImpl('/api/ghl-conversation', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
