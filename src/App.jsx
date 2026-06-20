@@ -1,61 +1,36 @@
-import { useState } from 'react'
-import LeadFinder from './components/LeadFinder'
-import SiteGenerator from './components/SiteGenerator'
+import { useState, useEffect, useRef } from 'react'
+import Home from './components/Home.jsx'
+import LeadWorkspace from './components/LeadWorkspace.jsx'
+import SettingsPanel, { useSettings } from './components/SettingsPanel.jsx'
+import { listLeads } from './lib/store.js'
+import { refreshReplies } from './lib/replyCheck.js'
 
 export default function App() {
-  const [tab, setTab] = useState('generator')
-  const [prefill, setPrefill] = useState(null)
+  const [settings] = useSettings()
+  const [view, setView] = useState({ name: 'home', leadId: null })
+  const [showSettings, setShowSettings] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const ranRef = useRef(false)
 
-  function handleBuildSite(data) {
-    setPrefill(data)
-    setTab('generator')
-  }
+  useEffect(() => {
+    if (ranRef.current || !settings?.ghlKey || !settings?.ghlLocationId) return
+    ranRef.current = true
+    listLeads().then(leads => refreshReplies(leads, settings)).then(updated => {
+      if (updated.length) setRefreshKey(k => k + 1)
+    })
+  }, [settings]) // run once after settings are available
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <header style={{
-        background: 'var(--surface)',
-        borderBottom: '1px solid var(--border)',
-        padding: '0 24px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 32,
-        height: 56,
-        flexShrink: 0,
-      }}>
-        <div style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 18, letterSpacing: 1 }}>
-          LocalLaunch
-        </div>
-        <div style={{ display: 'flex', gap: 4 }}>
-          {['finder', 'generator'].map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              style={{
-                background: tab === t ? 'var(--surface2)' : 'transparent',
-                border: tab === t ? '1px solid var(--border)' : '1px solid transparent',
-                color: tab === t ? 'var(--text)' : 'var(--text-dim)',
-                borderRadius: 6,
-                padding: '4px 14px',
-                cursor: 'pointer',
-                fontSize: 13,
-              }}
-            >
-              {t === 'finder' ? 'Lead Finder' : 'Site Generator'}
-            </button>
-          ))}
-        </div>
-        <div style={{ marginLeft: 'auto', color: 'var(--text-dim)', fontSize: 12 }}>
-          Ancient City Group
-        </div>
+    <div style={{ minHeight: '100vh' }}>
+      <header style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16, padding: '16px 26px' }}>
+        <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--accent)', cursor: 'pointer' }} onClick={() => setView({ name: 'home', leadId: null })}>LocalLaunch</span>
+        <span style={{ color: 'var(--text-dim)', fontSize: 15 }}>Command Center</span>
+        <button onClick={() => setShowSettings(true)} style={{ marginLeft: 'auto', background: 'none', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 16px', fontSize: 15, color: 'var(--text-dim)', cursor: 'pointer' }}>⚙ Settings</button>
       </header>
-
-      <main style={{ flex: 1, overflow: 'hidden' }}>
-        {tab === 'finder'
-          ? <LeadFinder onBuildSite={handleBuildSite} />
-          : <SiteGenerator prefill={prefill} />
-        }
-      </main>
+      {view.name === 'home'
+        ? <Home refreshKey={refreshKey} onOpenLead={(id) => setView({ name: 'workspace', leadId: id })} />
+        : <LeadWorkspace leadId={view.leadId} onBack={() => { setView({ name: 'home', leadId: null }); setRefreshKey(k => k + 1) }} />}
+      <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   )
 }
