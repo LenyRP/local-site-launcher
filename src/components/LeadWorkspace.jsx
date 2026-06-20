@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { getLead, saveLead } from '../lib/store.js'
-import { STATUS_ORDER, STATUS_META, advanceStatus } from '../lib/leadStatus.js'
+import { getLead, saveLead, deleteLead } from '../lib/store.js'
+import { STATUS_ORDER, STATUS_META, advanceStatus, isClosed } from '../lib/leadStatus.js'
 import { getNicheData } from '../lib/niches.js'
 import { useSettings } from './SettingsPanel.jsx'
 import DetailsCard from './workspace/DetailsCard.jsx'
@@ -24,14 +24,18 @@ export default function LeadWorkspace({ leadId, onBack }) {
   const [lead, setLead] = useState(null)
   const [lookupQuery, setLookupQuery] = useState('')
   const [lookupStatus, setLookupStatus] = useState('')
+  const [saveState, setSaveState] = useState('')
   const saveTimer = useRef(null)
+  const hydratedRef = useRef(false)
 
   useEffect(() => { getLead(leadId).then(setLead) }, [leadId])
 
   useEffect(() => {
     if (!lead) return
+    if (!hydratedRef.current) { hydratedRef.current = true; return }
+    setSaveState('saving')
     clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => { saveLead(lead) }, 600)
+    saveTimer.current = setTimeout(() => { saveLead(lead).then(() => setSaveState('saved')) }, 600)
     return () => clearTimeout(saveTimer.current)
   }, [lead])
 
@@ -81,6 +85,16 @@ export default function LeadWorkspace({ leadId, onBack }) {
   const onContacted = (lastOutboundAt) => setLead(l => ({ ...l, ghl: { ...(l.ghl || {}), lastOutboundAt }, status: advanceStatus(l.status, 'contacted') }))
   const setGhl = (patch) => setLead(l => ({ ...l, ghl: { ...(l.ghl || {}), ...patch } }))
 
+  async function handleDelete() {
+    if (!confirm(`Delete "${b.businessName || 'this lead'}"? This cannot be undone.`)) return
+    await deleteLead(lead.id)
+    onBack()
+  }
+  function markOutcome(outcome) { setLead(l => ({ ...l, status: outcome })) }
+  function reopen() {
+    setLead(l => ({ ...l, status: l.ghl?.contactId ? 'contacted' : l.publish?.siteUrl ? 'published' : 'built' }))
+  }
+
   const meta = STATUS_META[lead.status]
   const stageIdx = STATUS_ORDER.indexOf(lead.status)
 
@@ -90,16 +104,32 @@ export default function LeadWorkspace({ leadId, onBack }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 6 }}>
         <h1 style={{ margin: 0, fontSize: 26 }}>{b.businessName || 'New Lead'}</h1>
         <span style={{ background: meta.pillBg, color: meta.pillFg, fontSize: 13, fontWeight: 700, padding: '5px 12px', borderRadius: 99 }}>● {meta.label}</span>
+        {saveState === 'saving' ? <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>Saving…</span> : saveState === 'saved' ? <span style={{ fontSize: 13, color: 'var(--ok)' }}>Saved ✓</span> : null}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+          {isClosed(lead.status)
+            ? <button onClick={reopen} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'var(--text)' }}>Reopen</button>
+            : <>
+                <button onClick={() => markOutcome('won')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'var(--text)' }}>Mark Won</button>
+                <button onClick={() => markOutcome('not_interested')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'var(--text)' }}>Not interested</button>
+              </>
+          }
+          <button onClick={handleDelete} style={{ background: 'none', border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: 'var(--danger)' }}>Delete</button>
+        </div>
       </div>
       <div style={{ color: 'var(--text-dim)', fontSize: 15, marginBottom: 20 }}>{[b.city, b.state].filter(Boolean).join(', ')}{b.phone ? ' · ' + b.phone : ''}</div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 22 }}>
-        {STEPS.map(s => {
-          const done = stageIdx >= STATUS_ORDER.indexOf(s.key)
-          const now = lead.status === STATUS_ORDER[STATUS_ORDER.indexOf(s.key) - 1]
-          return <div key={s.key} style={{ flex: 1, textAlign: 'center', fontSize: 14, fontWeight: 700, padding: '10px 6px', borderRadius: 10, border: '1px solid var(--border)', background: done ? 'var(--ok-bg)' : now ? 'var(--accent)' : 'var(--surface)', color: done ? 'var(--ok)' : now ? '#fff' : 'var(--text-dim)' }}>{done ? '✓ ' : ''}{s.label}</div>
-        })}
-      </div>
+      {!isClosed(lead.status) && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 22 }}>
+          {STEPS.map(s => {
+            const done = stageIdx >= STATUS_ORDER.indexOf(s.key)
+            const now = lead.status === STATUS_ORDER[STATUS_ORDER.indexOf(s.key) - 1]
+            return <div key={s.key} style={{ flex: 1, textAlign: 'center', fontSize: 14, fontWeight: 700, padding: '10px 6px', borderRadius: 10, border: '1px solid var(--border)', background: done ? 'var(--ok-bg)' : now ? 'var(--accent)' : 'var(--surface)', color: done ? 'var(--ok)' : now ? '#fff' : 'var(--text-dim)' }}>{done ? '✓ ' : ''}{s.label}</div>
+          })}
+        </div>
+      )}
+      {isClosed(lead.status) && (
+        <div style={{ marginBottom: 22, color: 'var(--text-dim)', fontSize: 15 }}>This lead is marked {STATUS_META[lead.status].label}.</div>
+      )}
 
       <DetailsCard business={b} set={set} onNicheChange={onNicheChange} onLookup={onLookup} lookupStatus={lookupStatus} lookupQuery={lookupQuery} setLookupQuery={setLookupQuery} />
       <LocationCard business={b} set={set} />

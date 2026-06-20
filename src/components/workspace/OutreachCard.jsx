@@ -7,9 +7,15 @@ export default function OutreachCard({ lead, settings, onContacted, setGhl }) {
   const contactId = lead.ghl?.contactId
   const [channel, setChannel] = useState('Email')
   const [msg, setMsg] = useState(`Hi ${b.businessName || 'there'} — I built a free preview website for your business${siteUrl ? ': ' + siteUrl : ''}. Want me to hand it over?`)
+  const [edited, setEdited] = useState(false)
   const [thread, setThread] = useState([])
   const [status, setStatus] = useState('')
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (edited) return
+    setMsg(`Hi ${b.businessName || 'there'} — I built a free preview website for your business${siteUrl ? ': ' + siteUrl : ''}. Want me to hand it over?`)
+  }, [b.businessName, siteUrl, edited])
 
   const loadThread = useCallback(async () => {
     if (!contactId || !settings.ghlKey || !settings.ghlLocationId) return
@@ -56,7 +62,7 @@ export default function OutreachCard({ lead, settings, onContacted, setGhl }) {
               <span key={c} onClick={() => setChannel(c)} style={{ padding: '9px 18px', fontSize: 15, fontWeight: 700, cursor: 'pointer', background: channel === c ? 'var(--accent)' : 'var(--surface)', color: channel === c ? '#fff' : 'var(--text-dim)' }}>{c}</span>
             ))}
           </div>
-          <textarea style={{ ...S.input, minHeight: 80, resize: 'vertical' }} value={msg} onChange={e => setMsg(e.target.value)} />
+          <textarea style={{ ...S.input, minHeight: 80, resize: 'vertical' }} value={msg} onChange={e => { setEdited(true); setMsg(e.target.value) }} />
           <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
             <button style={S.btnPrimary} onClick={send} disabled={busy}>Send via GHL</button>
             {siteUrl && <button style={S.btnGhost} onClick={() => setMsg(m => m + ' ' + siteUrl)}>Insert site link</button>}

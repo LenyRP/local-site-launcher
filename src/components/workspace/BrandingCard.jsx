@@ -13,7 +13,7 @@ export default function BrandingCard({ business, set, images, setImg }) {
             style={{ width: 48, height: 36, borderRadius: 4, border: '1px solid var(--border)', cursor: 'pointer', background: 'none', flexShrink: 0 }} />
           <input
             type="text"
-            value={business.accentColor || ''}
+            value={business.accentColor || '#0dce7e'}
             onChange={e => {
               const v = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value
               set('accentColor', v)
