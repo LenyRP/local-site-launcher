@@ -10,7 +10,7 @@ const KEYS = [
 ]
 
 function load() {
-  let s = {}
+  let s
   try { s = JSON.parse(localStorage.getItem('ll_settings') || '{}') } catch { s = {} }
   if (!s.gplacesKey) s.gplacesKey = localStorage.getItem('gplaces_key') || ''
   return s

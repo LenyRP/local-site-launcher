@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { listLeads } from '../lib/store.js'
-import { computeCounts, STATUS_META, STATUS_ORDER } from '../lib/leadStatus.js'
+import { computeCounts, STATUS_META } from '../lib/leadStatus.js'
 import FindLeads from './FindLeads.jsx'
 
 const FILTERS = {
@@ -10,7 +10,7 @@ const FILTERS = {
   Replied: l => l.status === 'replied',
 }
 
-export default function Home({ onOpenLead, onOpenSettings, refreshKey }) {
+export default function Home({ onOpenLead, refreshKey }) {
   const [leads, setLeads] = useState([])
   const [filter, setFilter] = useState('All')
   const [finding, setFinding] = useState(false)

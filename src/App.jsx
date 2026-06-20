@@ -28,7 +28,7 @@ export default function App() {
         <button onClick={() => setShowSettings(true)} style={{ marginLeft: 'auto', background: 'none', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 16px', fontSize: 15, color: 'var(--text-dim)', cursor: 'pointer' }}>⚙ Settings</button>
       </header>
       {view.name === 'home'
-        ? <Home refreshKey={refreshKey} onOpenLead={(id) => setView({ name: 'workspace', leadId: id })} onOpenSettings={() => setShowSettings(true)} />
+        ? <Home refreshKey={refreshKey} onOpenLead={(id) => setView({ name: 'workspace', leadId: id })} />
         : <LeadWorkspace leadId={view.leadId} onBack={() => { setView({ name: 'home', leadId: null }); setRefreshKey(k => k + 1) }} />}
       <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} />
     </div>
