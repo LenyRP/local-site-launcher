@@ -21,6 +21,11 @@ export default function FindLeads({ onAdded }) {
     const nicheLabel = NICHE_GROUPS.flatMap(g => g.niches).find(n => n.value === niche)?.label || niche
     try {
       const sr = await fetch('/api/places-search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: `${nicheLabel} in ${city}`, apiKey: settings.gplacesKey }) }).then(r => r.json())
+      if (sr.status === 'REQUEST_DENIED' || sr.error_message) {
+        setError('Google rejected the request — check your Places API key in Settings.')
+        setLoading(false)
+        return
+      }
       const places = sr.results || sr.candidates || []
       const details = await Promise.all(places.slice(0, 10).map(async p => {
         try {
