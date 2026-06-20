@@ -9,7 +9,7 @@
   --accent: #2563eb;
   --accent2: #1d4ed8;
   --text: #1f2d3d;
-  --text-dim: #64748b;
+  --text-dim: #51607a;
   --danger: #dc2626;
   --warn: #b8791a;
   --ok: #15803d;
@@ -34,3 +34,7 @@ input, select, textarea, button { font-family: var(--font); font-size: 16px; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--input-border); border-radius: 5px; }
+
+html[data-zoom="lg"] body { font-size: 19px; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
