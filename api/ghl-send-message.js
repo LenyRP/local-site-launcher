@@ -16,7 +16,8 @@ export default async function handler(req, res) {
   const body = { type, contactId, message }
   if (type === 'Email') {
     body.subject = subject || 'A free website for your business'
-    body.html = `<p>${message.replace(/\n/g, '<br>')}</p>`
+    const escaped = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
+    body.html = `<p>${escaped}</p>`
   }
 
   try {

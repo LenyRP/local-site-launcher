@@ -104,7 +104,7 @@ export default function ServicesCard({ business, services, setServices, sectionT
               <input
                 style={S.input}
                 value={effectiveSectionTitles[key]}
-                onChange={e => setSectionTitles(t => ({ ...t, [key]: e.target.value }))}
+                onChange={e => setSectionTitles({ ...effectiveSectionTitles, [key]: e.target.value })}
                 placeholder={defaultSectionTitles(business.serviceType)[key]}
               />
             </div>
