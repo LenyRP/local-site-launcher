@@ -96,17 +96,17 @@ export default function PublishCard({ lead, settings, onPublished }) {
 
       {publishResult && (
         <div style={{
-          background: publishResult.success ? '#0f2b1a' : '#2b0f0f',
-          border: `1px solid ${publishResult.success ? 'var(--accent)' : 'var(--danger)'}`,
+          background: publishResult.success ? 'var(--ok-bg)' : '#fdecec',
+          border: `1px solid ${publishResult.success ? 'var(--ok)' : 'var(--danger)'}`,
           borderRadius: 8,
           padding: 16,
           fontSize: 13,
         }}>
           {publishResult.success ? (
             <>
-              <div style={{ color: 'var(--accent)', fontWeight: 700, marginBottom: 8 }}>✓ Published!</div>
-              {publishResult.repoUrl && <div>Repo: <a href={publishResult.repoUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>{publishResult.repoUrl}</a></div>}
-              {publishResult.siteUrl && <div>Site: <a href={publishResult.siteUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>{publishResult.siteUrl}</a></div>}
+              <div style={{ color: 'var(--ok)', fontWeight: 700, marginBottom: 8 }}>✓ Published!</div>
+              {publishResult.repoUrl && <div>Repo: <a href={publishResult.repoUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--ok)' }}>{publishResult.repoUrl}</a></div>}
+              {publishResult.siteUrl && <div>Site: <a href={publishResult.siteUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--ok)' }}>{publishResult.siteUrl}</a></div>}
             </>
           ) : (
             <div style={{ color: 'var(--danger)' }}>Error: {publishResult.error}</div>
