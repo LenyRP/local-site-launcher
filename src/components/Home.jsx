@@ -57,7 +57,7 @@ export default function Home({ onOpenLead, refreshKey, onOpenSettings }) {
         {Object.keys(FILTERS).map(f => (
           <span key={f} onClick={() => setFilter(f)} style={{ fontSize: 15, padding: '9px 16px', borderRadius: 9, cursor: 'pointer', border: '1px solid ' + (filter === f ? 'var(--border)' : 'transparent'), background: filter === f ? 'var(--surface)' : 'transparent', color: filter === f ? 'var(--text)' : 'var(--text-dim)', fontWeight: filter === f ? 700 : 400 }}>{f}</span>
         ))}
-        <button onClick={refresh} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 14px', fontSize: 14, color: 'var(--text-dim)', cursor: 'pointer' }}>↻ Refresh replies</button>
+        <button onClick={refresh} disabled={!!checking} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 14px', fontSize: 14, color: 'var(--text-dim)', cursor: 'pointer', opacity: !!checking ? 0.5 : 1, pointerEvents: !!checking ? 'none' : 'auto' }}>↻ Refresh replies</button>
         {checking && <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>{checking}</span>}
         <button onClick={() => setFinding(v => !v)} style={{ marginLeft: 'auto', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 20px', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>+ Find New Leads</button>
       </div>

@@ -26,11 +26,13 @@ export default function LeadWorkspace({ leadId, onBack }) {
   const [lookupStatus, setLookupStatus] = useState('')
   const [saveState, setSaveState] = useState('')
   const saveTimer = useRef(null)
+  const hydratedRef = useRef(false)
 
   useEffect(() => { getLead(leadId).then(setLead) }, [leadId])
 
   useEffect(() => {
     if (!lead) return
+    if (!hydratedRef.current) { hydratedRef.current = true; return }
     setSaveState('saving')
     clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => { saveLead(lead).then(() => setSaveState('saved')) }, 600)
