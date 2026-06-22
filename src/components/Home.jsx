@@ -3,6 +3,7 @@ import { listLeads } from '../lib/store.js'
 import { computeCounts, STATUS_META } from '../lib/leadStatus.js'
 import { refreshReplies } from '../lib/replyCheck.js'
 import FindLeads from './FindLeads.jsx'
+import AddBusiness from './AddBusiness.jsx'
 import { useSettings } from './SettingsPanel.jsx'
 
 const FILTERS = {
@@ -17,6 +18,7 @@ export default function Home({ onOpenLead, refreshKey, onOpenSettings }) {
   const [leads, setLeads] = useState([])
   const [filter, setFilter] = useState('All')
   const [finding, setFinding] = useState(false)
+  const [adding, setAdding] = useState(false)
   const [settings] = useSettings()
   const [checking, setChecking] = useState('')
 
@@ -59,8 +61,10 @@ export default function Home({ onOpenLead, refreshKey, onOpenSettings }) {
         ))}
         <button onClick={refresh} disabled={!!checking} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 9, padding: '9px 14px', fontSize: 14, color: 'var(--text-dim)', cursor: 'pointer', opacity: !!checking ? 0.5 : 1, pointerEvents: !!checking ? 'none' : 'auto' }}>↻ Refresh replies</button>
         {checking && <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>{checking}</span>}
-        <button onClick={() => setFinding(v => !v)} style={{ marginLeft: 'auto', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 20px', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>+ Find New Leads</button>
+        <button onClick={() => { setAdding(v => !v); setFinding(false) }} style={{ marginLeft: 'auto', background: 'none', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 18px', fontSize: 16, fontWeight: 700, color: 'var(--text)', cursor: 'pointer' }}>+ Add Business Manually</button>
+        <button onClick={() => { setFinding(v => !v); setAdding(false) }} style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 20px', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>+ Find New Leads</button>
       </div>
+      {adding && <AddBusiness onAdded={(id) => { setAdding(false); onOpenLead(id) }} />}
       {finding && <FindLeads onAdded={(id) => { setFinding(false); onOpenLead(id) }} />}
       {leads.length === 0 && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 28, textAlign: 'center' }}>
