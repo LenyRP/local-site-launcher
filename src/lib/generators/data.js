@@ -50,7 +50,7 @@ export function genServicesTs(services) {
   const rows = services.map(s => `  {
     slug: ${js(s.slug)},
     title: ${js(s.title)},
-    desc: ${js(s.desc)},
+    desc: ${js(s.desc)},${s.image ? `\n    image: ${js(s.image)},` : ''}
   }`).join(',\n')
   return `export const services = [\n${rows}\n] as const;\n\nexport type Service = typeof services[number];\n`
 }
@@ -77,7 +77,7 @@ export function genMenuTs(menu) {
   const rows = menu.map(cat => `  {
     category: ${js(cat.category)},
     items: [
-      ${cat.items.map(item => `{ name: ${js(item.name)}, price: ${js(item.price)}, desc: ${js(item.desc || '')} }`).join(',\n      ')}
+      ${cat.items.map(item => `{ name: ${js(item.name)}, price: ${js(item.price)}, desc: ${js(item.desc || '')}${item.image ? `, image: ${js(item.image)}` : ''} }`).join(',\n      ')}
     ],
   }`).join(',\n')
   return `export const menu = [\n${rows}\n] as const;\n\nexport type MenuCategory = typeof menu[number];\n`

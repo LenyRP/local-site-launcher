@@ -11,6 +11,20 @@ import {
   genPrivacyPage, genTermsPage, genMenuPage,
 } from './generators/pages.js'
 
+// Pulls inline base64 image data URLs off items into standalone files and rewrites
+// each item's `image` to the public path. Items without a data-URL image pass through.
+// `fileFor(item, index)` returns the path segment under public/ (e.g. "images/service-0.jpg").
+export function extractItemImages(items, fileFor) {
+  const files = {}
+  const out = (items || []).map((item, i) => {
+    if (!item || typeof item.image !== 'string' || !item.image.startsWith('data:')) return item
+    const seg = fileFor(item, i)
+    files['public/' + seg] = item.image
+    return { ...item, image: '/' + seg }
+  })
+  return { items: out, files }
+}
+
 function buildForm(form, menu = [], hours = []) {
   return {
     ...form,
@@ -33,10 +47,23 @@ export function generateAstroSite(formRaw, images = {}) {
   const form = buildForm({ ...formRaw, _images: images }, menu, hours)
   const nicheData = getNicheData(form.serviceType || 'pressure-washing')
   const city = form.city || 'the local area'
-  const services = formRaw._customServices && formRaw._customServices.length > 0 ? formRaw._customServices : nicheData.services
+  const servicesRaw = formRaw._customServices && formRaw._customServices.length > 0 ? formRaw._customServices : nicheData.services
   const faqs = nicheData.faqs(city)
 
   const files = {}
+
+  // Pull any per-service inline images into files; `services` then carries public paths.
+  const svcExtract = extractItemImages(servicesRaw, (_s, i) => `images/service-${i}.jpg`)
+  const services = svcExtract.items
+  Object.assign(files, svcExtract.files)
+
+  // Same for per-item menu images (nested per category).
+  const menuFiles = {}
+  const menuOut = menu.map((cat, ci) => {
+    const ex = extractItemImages(cat.items || [], (_it, ii) => `images/menu-${ci}-${ii}.jpg`)
+    Object.assign(menuFiles, ex.files)
+    return { ...cat, items: ex.items }
+  })
 
   // Config
   files['package.json'] = genPackageJson(form.slug)
@@ -83,8 +110,9 @@ export function generateAstroSite(formRaw, images = {}) {
 
   // Menu data + page (if menu items exist)
   if (menu.length > 0) {
-    files['src/data/menu.ts'] = genMenuTs(menu)
+    files['src/data/menu.ts'] = genMenuTs(menuOut)
     files['src/pages/menu.astro'] = genMenuPage(form)
+    Object.assign(files, menuFiles)
   }
 
   // Images
@@ -116,9 +144,33 @@ export function generatePreviewHTML(formRaw, images = {}) {
 
   const svcCards = services.map(s => `
     <div class="card">
+      ${s.image ? `<div style="border-radius:8px;overflow:hidden;aspect-ratio:16/9;margin-bottom:14px"><img src="${s.image}" style="width:100%;height:100%;object-fit:cover" alt="${s.title}"></div>` : ''}
       <h3>${s.title}</h3>
       <p>${s.desc}</p>
     </div>`).join('')
+
+  const menuCats = (formRaw._menu || []).filter(c => (c.items || []).length)
+  const menuSection = (isFood && menuCats.length) ? `
+<section style="padding:60px 24px;background:#fff">
+  <div class="container" style="max-width:760px">
+    <h2>Menu</h2>
+    ${menuCats.map(cat => `
+    <div style="margin-bottom:32px">
+      <h3 style="font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:800;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px">${cat.category || ''}</h3>
+      ${(cat.items || []).map(item => `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:10px 0;border-bottom:1px solid #f3f4f6">
+        <div style="display:flex;gap:14px;align-items:flex-start;flex:1">
+          ${item.image ? `<img src="${item.image}" alt="${item.name || ''}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0">` : ''}
+          <div>
+            <div style="font-weight:600;color:#111">${item.name || ''}</div>
+            ${item.desc ? `<div style="font-size:13px;color:#6b7280;margin-top:2px">${item.desc}</div>` : ''}
+          </div>
+        </div>
+        <div style="font-weight:700;color:${accent};flex-shrink:0">${item.price || ''}</div>
+      </div>`).join('')}
+    </div>`).join('')}
+  </div>
+</section>` : ''
 
   const photoItems = [images.photo1, images.photo2, images.photo3].filter(Boolean)
   const photoSection = photoItems.length ? `
@@ -221,6 +273,7 @@ ${form.offerBanner ? `<div id="offer-banner" style="background:${accent};color:#
   </div>
 </section>
 ${photoSection}
+${menuSection}
 ${(() => {
   const url = form.videoUrl || ''
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/)

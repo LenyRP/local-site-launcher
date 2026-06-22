@@ -57,8 +57,23 @@ export function compressImage(file, maxDim) {
   })
 }
 
-export function ImageUpload({ label, value, onChange, maxDim = 1200 }) {
+export function ImageUpload({ label, value, onChange, maxDim = 1200, compact = false }) {
   const ref = useRef()
+  const pick = async (e) => { if (e.target.files[0]) onChange(await compressImage(e.target.files[0], maxDim)) }
+
+  if (compact) {
+    return (
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }} title={label}>
+        {value
+          ? <img src={value} style={{ height: 36, width: 36, objectFit: 'cover', borderRadius: 4, border: '1px solid var(--border)' }} alt={label} />
+          : <div style={{ height: 36, width: 36, background: 'var(--surface2)', border: '1px dashed var(--border)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: 'var(--text-dim)' }}>🖼</div>}
+        <button onClick={() => ref.current.click()} style={{ background: 'transparent', border: '1px solid var(--input-border)', borderRadius: 4, color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 10px', fontSize: 12, whiteSpace: 'nowrap' }}>{value ? 'Change' : '+ Photo'}</button>
+        {value && <button onClick={() => onChange(undefined)} style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 9px', fontSize: 12 }} title="Remove photo">✕</button>}
+        <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={pick} />
+      </div>
+    )
+  }
+
   return (
     <Field label={label}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -66,8 +81,7 @@ export function ImageUpload({ label, value, onChange, maxDim = 1200 }) {
           ? <img src={value} style={{ height: 48, borderRadius: 4, border: '1px solid var(--border)' }} alt={label} />
           : <div style={{ height: 48, width: 80, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'var(--text-dim)' }}>No image</div>}
         <button style={S.btnGhost} onClick={() => ref.current.click()}>{value ? 'Change' : 'Upload'}</button>
-        <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }}
-          onChange={async (e) => { if (e.target.files[0]) onChange(await compressImage(e.target.files[0], maxDim)) }} />
+        <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={pick} />
       </div>
     </Field>
   )

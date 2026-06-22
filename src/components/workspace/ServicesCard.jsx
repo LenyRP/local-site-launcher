@@ -1,4 +1,4 @@
-import { Card, S } from './formKit.jsx'
+import { Card, ImageUpload, S } from './formKit.jsx'
 import { getNicheData } from '../../lib/niches.js'
 
 export const FOOD_NICHES = new Set(['restaurant', 'cafe', 'bakery', 'food-truck', 'catering', 'bar', 'brewery', 'pizza', 'diner', 'seafood'])
@@ -73,6 +73,19 @@ export default function ServicesCard({ business, services, setServices, sectionT
                 setServices(updated)
               }}
             />
+            <div style={{ marginTop: 8 }}>
+              <ImageUpload
+                compact
+                label={`${svc.title || 'Service'} photo`}
+                value={svc.image}
+                maxDim={800}
+                onChange={v => {
+                  const updated = effectiveServices.map(s => ({ ...s }))
+                  updated[i] = { ...updated[i], image: v }
+                  setServices(updated)
+                }}
+              />
+            </div>
           </div>
         ))}
         <button
@@ -202,35 +215,50 @@ export default function ServicesCard({ business, services, setServices, sectionT
                 >Remove Category</button>
               </div>
               {cat.items.map((item, ii) => (
-                <div key={ii} style={{ display: 'grid', gridTemplateColumns: '1fr 100px auto', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-                  <input
-                    style={S.input}
-                    value={item.name}
-                    placeholder="Item name"
-                    onChange={e => {
-                      const m = [...menu]
-                      m[ci] = { ...m[ci], items: m[ci].items.map((it, idx) => idx === ii ? { ...it, name: e.target.value } : it) }
-                      setMenu(m)
-                    }}
-                  />
-                  <input
-                    style={S.input}
-                    value={item.price}
-                    placeholder="$0.00"
-                    onChange={e => {
-                      const m = [...menu]
-                      m[ci] = { ...m[ci], items: m[ci].items.map((it, idx) => idx === ii ? { ...it, price: e.target.value } : it) }
-                      setMenu(m)
-                    }}
-                  />
-                  <button
-                    onClick={() => {
-                      const m = [...menu]
-                      m[ci] = { ...m[ci], items: m[ci].items.filter((_, idx) => idx !== ii) }
-                      setMenu(m)
-                    }}
-                    style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 10px', fontSize: 14 }}
-                  >✕</button>
+                <div key={ii} style={{ marginBottom: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px auto', gap: 8, alignItems: 'center' }}>
+                    <input
+                      style={S.input}
+                      value={item.name}
+                      placeholder="Item name"
+                      onChange={e => {
+                        const m = [...menu]
+                        m[ci] = { ...m[ci], items: m[ci].items.map((it, idx) => idx === ii ? { ...it, name: e.target.value } : it) }
+                        setMenu(m)
+                      }}
+                    />
+                    <input
+                      style={S.input}
+                      value={item.price}
+                      placeholder="$0.00"
+                      onChange={e => {
+                        const m = [...menu]
+                        m[ci] = { ...m[ci], items: m[ci].items.map((it, idx) => idx === ii ? { ...it, price: e.target.value } : it) }
+                        setMenu(m)
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const m = [...menu]
+                        m[ci] = { ...m[ci], items: m[ci].items.filter((_, idx) => idx !== ii) }
+                        setMenu(m)
+                      }}
+                      style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 10px', fontSize: 14 }}
+                    >✕</button>
+                  </div>
+                  <div style={{ marginTop: 6 }}>
+                    <ImageUpload
+                      compact
+                      label={`${item.name || 'Item'} photo`}
+                      value={item.image}
+                      maxDim={600}
+                      onChange={v => {
+                        const m = [...menu]
+                        m[ci] = { ...m[ci], items: m[ci].items.map((it, idx) => idx === ii ? { ...it, image: v } : it) }
+                        setMenu(m)
+                      }}
+                    />
+                  </div>
                 </div>
               ))}
               <button

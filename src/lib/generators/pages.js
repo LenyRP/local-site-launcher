@@ -43,6 +43,7 @@ export function genHomePage(form, services, faqs) {
 
   const svcCards = services.map((s, i) =>
     `    <div class="service-card reveal reveal-delay-${i + 1}">
+      ${s.image ? `<div class="overflow-hidden rounded-lg aspect-video mb-4"><img src="${s.image}" alt="${s.title}" class="w-full h-full object-cover" loading="lazy" /></div>` : ''}
       <h3 class="font-bold text-lg text-gray-900 mb-2">${s.title}</h3>
       <p class="text-gray-500 text-sm leading-relaxed">${s.desc}</p>
     </div>`
@@ -307,6 +308,11 @@ const { service } = Astro.props;
     ]} />
     <h1 class="text-4xl font-bold text-gray-900 mb-4">{service.title}</h1>
     <p class="text-xl text-gray-600 mb-8">{service.desc}</p>
+    {service.image && (
+      <div class="overflow-hidden rounded-xl mb-8 aspect-video">
+        <img src={service.image} alt={service.title} class="w-full h-full object-cover" loading="lazy" />
+      </div>
+    )}
     <a href={'tel:' + business.phone}
       class="inline-block bg-accent text-white font-bold px-8 py-3 rounded-lg text-lg hover:bg-accent-dark transition-colors mb-12">
       Call {business.phone} for a Free Quote
@@ -655,9 +661,12 @@ import { menu } from '../data/menu';
         <div class="space-y-4">
           {cat.items.map(item => (
             <div class="flex justify-between items-start gap-6 py-3 border-b border-gray-100">
-              <div class="flex-1">
-                <span class="font-semibold text-gray-900">{item.name}</span>
-                {item.desc && <p class="text-sm text-gray-500 mt-0.5">{item.desc}</p>}
+              <div class="flex items-start gap-4 flex-1">
+                {item.image && <img src={item.image} alt={item.name} class="w-16 h-16 rounded-lg object-cover flex-shrink-0" loading="lazy" />}
+                <div class="flex-1">
+                  <span class="font-semibold text-gray-900">{item.name}</span>
+                  {item.desc && <p class="text-sm text-gray-500 mt-0.5">{item.desc}</p>}
+                </div>
               </div>
               <span class="font-bold text-lg flex-shrink-0" style="color:var(--color-accent)">{item.price}</span>
             </div>
