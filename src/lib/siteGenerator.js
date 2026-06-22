@@ -3,7 +3,7 @@ import { getNicheData, slugify } from './niches.js'
 const FOOD_NICHES_PREVIEW = new Set(['restaurant', 'cafe', 'bakery', 'food-truck', 'catering', 'bar', 'brewery', 'pizza', 'diner', 'seafood'])
 import { genPackageJson, genAstroConfig, genNvmrc, genGitignore, genRobotsTxt, genFaviconSvg, genTsconfig } from './generators/config.js'
 import { genBusinessTs, genServicesTs, genAreasTs, genMenuTs, genHoursTs } from './generators/data.js'
-import { genGlobalCss, genBaseLayout, genHeader, genFooter } from './generators/layouts.js'
+import { genGlobalCss, genBaseLayout, genHeader, genFooter, THEMES } from './generators/layouts.js'
 import { genSchemaCmp, genCTACmp, genFAQCmp, genBreadcrumbsCmp } from './generators/components.js'
 import {
   genHomePage, genServicePage, genAreaPage, genMatrixPage,
@@ -75,7 +75,7 @@ export function generateAstroSite(formRaw, images = {}) {
   files['public/favicon.svg'] = genFaviconSvg(form.accentColor)
 
   // Styles
-  files['src/styles/global.css'] = genGlobalCss(form.accentColor)
+  files['src/styles/global.css'] = genGlobalCss(form.accentColor, form.theme)
 
   // Data files
   files['src/data/business.ts'] = genBusinessTs(form)
@@ -133,6 +133,7 @@ export function generatePreviewHTML(formRaw, images = {}) {
   const city = form.city || 'the local area'
   const services = formRaw._customServices && formRaw._customServices.length > 0 ? formRaw._customServices : nicheData.services
   const accent = form.accentColor || '#0dce7e'
+  const pal = THEMES[form.theme] || THEMES.light
   const heroImg = images.hero || ''
   const st = formRaw._sectionTitles || {}
   const isFood = FOOD_NICHES_PREVIEW.has(form.serviceType)
@@ -151,19 +152,19 @@ export function generatePreviewHTML(formRaw, images = {}) {
 
   const menuCats = (formRaw._menu || []).filter(c => (c.items || []).length)
   const menuSection = (isFood && menuCats.length) ? `
-<section style="padding:60px 24px;background:#fff">
+<section style="padding:60px 24px;background:${pal.surface}">
   <div class="container" style="max-width:760px">
     <h2>Menu</h2>
     ${menuCats.map(cat => `
     <div style="margin-bottom:32px">
-      <h3 style="font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:800;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px">${cat.category || ''}</h3>
+      <h3 style="font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:800;margin-bottom:14px;border-bottom:1px solid ${pal.line};padding-bottom:8px;color:${pal.ink}">${cat.category || ''}</h3>
       ${(cat.items || []).map(item => `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:10px 0;border-bottom:1px solid #f3f4f6">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:10px 0;border-bottom:1px solid ${pal.line}">
         <div style="display:flex;gap:14px;align-items:flex-start;flex:1">
           ${item.image ? `<img src="${item.image}" alt="${item.name || ''}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0">` : ''}
           <div>
-            <div style="font-weight:600;color:#111">${item.name || ''}</div>
-            ${item.desc ? `<div style="font-size:13px;color:#6b7280;margin-top:2px">${item.desc}</div>` : ''}
+            <div style="font-weight:600;color:${pal.ink}">${item.name || ''}</div>
+            ${item.desc ? `<div style="font-size:13px;color:${pal.muted};margin-top:2px">${item.desc}</div>` : ''}
           </div>
         </div>
         <div style="font-weight:700;color:${accent};flex-shrink:0">${item.price || ''}</div>
@@ -174,7 +175,7 @@ export function generatePreviewHTML(formRaw, images = {}) {
 
   const photoItems = [images.photo1, images.photo2, images.photo3].filter(Boolean)
   const photoSection = photoItems.length ? `
-<section style="padding:60px 24px;background:#fff">
+<section style="padding:60px 24px;background:${pal.surface}">
   <div class="container">
     <h2>${galleryHeading}</h2>
     <div style="display:grid;grid-template-columns:repeat(${photoItems.length},1fr);gap:16px;max-width:1100px;margin:0 auto">
@@ -193,12 +194,12 @@ export function generatePreviewHTML(formRaw, images = {}) {
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',system-ui,sans-serif;color:#111;padding-bottom:88px}
-header{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:80px;position:sticky;top:0;z-index:10}
-header .brand{font-weight:800;font-size:19px;color:#111}
+body{font-family:'Inter',system-ui,sans-serif;color:${pal.ink};background:${pal.surface};padding-bottom:88px}
+header{background:${pal.surface};border-bottom:1px solid ${pal.line};padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:80px;position:sticky;top:0;z-index:10}
+header .brand{font-weight:800;font-size:19px;color:${pal.ink}}
 header a.cta{background:${accent};color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;transition:transform .15s;display:inline-block}
 header a.cta:hover{transform:scale(1.05)}
-.hero{background:#0f172a url('${heroImg}') center/cover;position:relative;padding:100px 24px;text-align:center;color:#fff;min-height:500px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.hero{background:${pal.deep} url('${heroImg}') center/cover;position:relative;padding:100px 24px;text-align:center;color:#fff;min-height:500px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.6));z-index:0}
 .hero *{position:relative;z-index:1}
 .hero .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px;color:${accent};opacity:1}
@@ -208,30 +209,30 @@ header a.cta:hover{transform:scale(1.05)}
 .btn-primary{background:${accent};color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;transition:transform .15s}
 .btn-primary:hover{transform:scale(1.05)}
 .btn-outline{border:2px solid rgba(255,255,255,.7);color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600}
-.trust-bar{background:#0f172a;color:#fff;padding:14px 24px;display:flex;flex-wrap:wrap;justify-content:center;gap:20px;font-size:13px;font-weight:600}
+.trust-bar{background:${pal.deep};color:#fff;padding:14px 24px;display:flex;flex-wrap:wrap;justify-content:center;gap:20px;font-size:13px;font-weight:600}
 .trust-bar span em{font-style:normal;color:${accent};margin-right:5px}
 section{padding:72px 24px}
 .container{max-width:1100px;margin:0 auto}
-h2{font-family:'Playfair Display',Georgia,serif;font-size:clamp(26px,4vw,38px);font-weight:800;margin-bottom:12px;text-align:center;color:#111}
-.sub{text-align:center;color:#6b7280;margin-bottom:36px;font-size:15px}
+h2{font-family:'Playfair Display',Georgia,serif;font-size:clamp(26px,4vw,38px);font-weight:800;margin-bottom:12px;text-align:center;color:${pal.ink}}
+.sub{text-align:center;color:${pal.muted};margin-bottom:36px;font-size:15px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.card{background:#fff;border:1px solid #e5e7eb;border-top:3px solid transparent;border-radius:12px;padding:28px;transition:all .25s}
+.card{background:${pal.card};border:1px solid ${pal.line};border-top:3px solid transparent;border-radius:12px;padding:28px;transition:all .25s}
 .card:hover{border-top-color:${accent};box-shadow:0 8px 28px rgba(0,0,0,.10);transform:translateY(-3px)}
-.card h3{font-size:15px;font-weight:700;margin-bottom:8px;color:#111}
-.card p{font-size:13px;color:#6b7280;line-height:1.65}
+.card h3{font-size:15px;font-weight:700;margin-bottom:8px;color:${pal.ink}}
+.card p{font-size:13px;color:${pal.muted};line-height:1.65}
 .areas{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .area-pill{border:2px solid ${accent};color:${accent};padding:8px 20px;border-radius:999px;font-size:13px;font-weight:700;background:color-mix(in srgb,${accent} 10%,white)}
 .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:32px}
-.why-card{background:#f9fafb;border-radius:16px;padding:24px;text-align:center}
+.why-card{background:${pal.surfaceAlt};border-radius:16px;padding:24px;text-align:center}
 .why-card .num{font-size:28px;font-weight:800;color:${accent};margin-bottom:4px}
-.why-card .lbl{font-size:12px;color:#6b7280;font-weight:600}
-.cta-section{background:linear-gradient(135deg,#0f172a,#1e293b);padding:80px 24px;text-align:center;position:relative;overflow:hidden}
+.why-card .lbl{font-size:12px;color:${pal.muted};font-weight:600}
+.cta-section{background:linear-gradient(135deg,${pal.deep},${pal.deep2});padding:80px 24px;text-align:center;position:relative;overflow:hidden}
 .cta-section::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,.05) 1px,transparent 0);background-size:32px 32px}
 .cta-section h2{font-family:'Playfair Display',Georgia,serif;color:#fff;position:relative}
 .cta-section p{color:#94a3b8;margin-bottom:32px;font-size:16px;position:relative}
-footer{background:#0f172a;color:#6b7280;padding:40px 24px;text-align:center;font-size:13px}
+footer{background:${pal.deep};color:#94a3b8;padding:40px 24px;text-align:center;font-size:13px}
 .preview-badge{position:fixed;bottom:16px;right:16px;background:#1e293b;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;font-family:monospace;z-index:100}
-.review-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px;display:flex;flex-direction:column}
+.review-card{background:${pal.card};border:1px solid ${pal.line};border-radius:16px;padding:24px;display:flex;flex-direction:column}
 @media(max-width:768px){.grid{grid-template-columns:1fr}.why-grid{grid-template-columns:repeat(2,1fr)}.hero{padding:72px 16px}}
 </style>
 </head>
@@ -265,7 +266,7 @@ ${form.offerBanner ? `<div id="offer-banner" style="background:${accent};color:#
   <span><em>💬</em>Free Estimates</span>
   <span><em>📍</em>Locally Owned</span>`}
 </div>
-<section style="background:#f9fafb">
+<section style="background:${pal.surfaceAlt}">
   <div class="container">
     <h2>${svcHeading}</h2>
     <p class="sub">${isFood ? 'Delicious food made with care — served fresh every day.' : 'Professional, reliable service — satisfaction guaranteed.'}</p>
@@ -279,7 +280,7 @@ ${(() => {
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/)
   if (!m) return ''
   const embedUrl = `https://www.youtube.com/embed/${m[1]}?rel=0&modestbranding=1`
-  return `<section style="padding:60px 24px;background:#fff">
+  return `<section style="padding:60px 24px;background:${pal.surface}">
   <div class="container">
     <h2>See Us in Action</h2>
     <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.12)">
@@ -308,7 +309,7 @@ ${(() => {
     </div>
   </div>
 </section>
-<section style="background:#f9fafb">
+<section style="background:${pal.surfaceAlt}">
   <div class="container">
     <h2>${areasHeading}</h2>
     <p class="sub">${isFood ? 'We\'re right in your neighborhood' : 'Proudly serving the following communities'}</p>
@@ -323,9 +324,9 @@ ${(() => {
   const cards = rv.map(r => {
     const stars = '★'.repeat(Math.min(5, r.rating || 5))
     const empty = '☆'.repeat(5 - Math.min(5, r.rating || 5))
-    return `<div class="review-card"><div style="color:#f59e0b;font-size:18px;margin-bottom:8px">${stars}${empty}</div><p style="color:#374151;font-style:italic;font-size:14px;line-height:1.6;margin-bottom:12px">"${r.text}"</p><div style="font-weight:700;font-size:13px">— ${r.name}</div>${r.source ? `<div style="color:#9ca3af;font-size:11px;margin-top:2px">${r.source}</div>` : ''}</div>`
+    return `<div class="review-card"><div style="color:#f59e0b;font-size:18px;margin-bottom:8px">${stars}${empty}</div><p style="color:${pal.body};font-style:italic;font-size:14px;line-height:1.6;margin-bottom:12px">"${r.text}"</p><div style="font-weight:700;font-size:13px;color:${pal.ink}">— ${r.name}</div>${r.source ? `<div style="color:${pal.muted};font-size:11px;margin-top:2px">${r.source}</div>` : ''}</div>`
   }).join('')
-  return `<section style="padding:72px 24px;background:#fff">
+  return `<section style="padding:72px 24px;background:${pal.surface}">
   <div class="container">
     <h2>${reviewsHeading}</h2>
     <p class="sub">Real words from real customers</p>
@@ -361,7 +362,7 @@ ${(() => {
   </div>
   &copy; ${new Date().getFullYear()} ${form.businessName}. All rights reserved.
 </footer>
-<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:rgba(255,255,255,0.95);backdrop-filter:blur(8px);border-top:1px solid #e5e7eb;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.08)">
+<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:${pal.surface};backdrop-filter:blur(8px);border-top:1px solid ${pal.line};z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.08)">
   <a href="tel:${form.phone}" style="display:flex;align-items:center;justify-content:center;gap:8px;background:${accent};color:#fff;padding:14px;border-radius:14px;text-decoration:none;font-weight:700;font-size:16px;width:100%;box-sizing:border-box">
     📞 Call ${form.phone || 'Now'}
   </a>

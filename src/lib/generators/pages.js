@@ -7,20 +7,20 @@ function genReviewsSection(reviews, heading) {
   const cards = reviews.filter(r => r.text && r.name).map((r, i) => {
     const stars = '★'.repeat(Math.min(5, Math.max(1, r.rating || 5)))
     const empty = '☆'.repeat(5 - (r.rating || 5))
-    return `    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-3 reveal reveal-delay-${i + 1}">
+    return `    <div class="bg-card rounded-2xl p-6 shadow-sm border border-line flex flex-col gap-3 reveal reveal-delay-${i + 1}">
       <div class="text-yellow-400 text-xl">${stars}${empty}</div>
-      <p class="text-gray-700 italic leading-relaxed">&ldquo;${r.text}&rdquo;</p>
+      <p class="text-body italic leading-relaxed">&ldquo;${r.text}&rdquo;</p>
       <div class="mt-auto">
-        <div class="font-semibold text-gray-900">— ${r.name}</div>
-        ${r.source ? `<div class="text-xs text-gray-400 mt-0.5">${r.source}</div>` : ''}
+        <div class="font-semibold text-ink">— ${r.name}</div>
+        ${r.source ? `<div class="text-xs text-faint mt-0.5">${r.source}</div>` : ''}
       </div>
     </div>`
   }).join('\n')
   return `  <!-- Reviews -->
-  <section class="py-20 px-4 bg-gray-50">
+  <section class="py-20 px-4 bg-surface-alt">
     <div class="max-w-6xl mx-auto">
-      <h2 class="font-display text-4xl font-bold text-center text-gray-900 mb-3 reveal">${heading}</h2>
-      <p class="text-center text-gray-500 mb-12 reveal">Real words from real customers</p>
+      <h2 class="font-display text-4xl font-bold text-center text-ink mb-3 reveal">${heading}</h2>
+      <p class="text-center text-muted mb-12 reveal">Real words from real customers</p>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 ${cards}
       </div>
@@ -44,17 +44,17 @@ export function genHomePage(form, services, faqs) {
   const svcCards = services.map((s, i) =>
     `    <div class="service-card reveal reveal-delay-${i + 1}">
       ${s.image ? `<div class="overflow-hidden rounded-lg aspect-video mb-4"><img src="${s.image}" alt="${s.title}" class="w-full h-full object-cover" loading="lazy" /></div>` : ''}
-      <h3 class="font-bold text-lg text-gray-900 mb-2">${s.title}</h3>
-      <p class="text-gray-500 text-sm leading-relaxed">${s.desc}</p>
+      <h3 class="font-bold text-lg text-ink mb-2">${s.title}</h3>
+      <p class="text-muted text-sm leading-relaxed">${s.desc}</p>
     </div>`
   ).join('\n')
 
   const faqItems = faqs.map(f => `{ q: ${js(f.q)}, a: ${js(f.a)} }`).join(',\n    ')
 
   const photoSection = `  <!-- Photo Gallery -->
-  <section class="py-16 px-4 bg-white">
+  <section class="py-16 px-4 bg-surface">
     <div class="max-w-6xl mx-auto">
-      <h2 class="font-display text-3xl font-bold text-center text-gray-900 mb-10 reveal">${galleryHeading}</h2>
+      <h2 class="font-display text-3xl font-bold text-center text-ink mb-10 reveal">${galleryHeading}</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         ${form.hasPhoto1 ? '<div class="overflow-hidden rounded-xl aspect-video reveal reveal-delay-1"><img src="/images/photo1.jpg" alt={business.name} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" /></div>' : ''}
         ${form.hasPhoto2 ? '<div class="overflow-hidden rounded-xl aspect-video reveal reveal-delay-2"><img src="/images/photo2.jpg" alt={business.name} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" /></div>' : ''}
@@ -80,10 +80,10 @@ export function genHomePage(form, services, faqs) {
     { num: '24', suffix: '/7', label: 'Available', raw: true },
     { num: 'Free', label: 'Estimates', raw: false },
   ]).map(s => `
-          <div class="bg-gray-50 rounded-2xl p-6 text-center reveal">
+          <div class="bg-surface-alt rounded-2xl p-6 text-center reveal">
             <div class="text-3xl font-bold mb-1 stat-num${s.raw ? `" data-target="${s.num}" data-suffix="${s.suffix || ''}"` : '"'}
               style="color:var(--color-accent)">${s.raw ? '0' + (s.suffix || '') : s.num}</div>
-            <div class="text-sm text-gray-500 font-medium">${s.label}</div>
+            <div class="text-sm text-muted font-medium">${s.label}</div>
           </div>`).join('\n')
 
   return `---
@@ -103,7 +103,7 @@ const faqs = [
 >
 
   <!-- Hero -->
-  <section class="relative text-white overflow-hidden" style="min-height:520px;${heroImg ? `background:linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),url('${heroImg}') center/cover no-repeat;` : 'background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);'}">
+  <section class="relative text-white overflow-hidden" style="min-height:520px;${heroImg ? `background:linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),url('${heroImg}') center/cover no-repeat;` : 'background:linear-gradient(135deg,var(--color-deep-2) 0%,var(--color-deep) 100%);'}">
     <div class="relative max-w-5xl mx-auto px-6 py-24 text-center flex flex-col items-center justify-center" style="min-height:520px;">
       <p class="uppercase tracking-widest text-sm font-semibold mb-4 opacity-80" style="color:var(--color-accent)">${city}, ${state || 'FL'}</p>
       <h1 class="font-display text-5xl md:text-6xl font-bold mb-5 leading-tight">${businessName}</h1>
@@ -123,7 +123,7 @@ const faqs = [
   </section>
 
   <!-- Trust Bar -->
-  <div class="bg-gray-900 text-white py-4 px-4">
+  <div class="bg-deep text-white py-4 px-4">
     <div class="max-w-5xl mx-auto flex flex-wrap justify-center gap-6 text-sm font-medium">
       ${isFood ? `
       <span class="flex items-center gap-2"><span style="color:var(--color-accent)">🏠</span> Family-Owned</span>
@@ -140,11 +140,11 @@ const faqs = [
   </div>
 
   <!-- Services -->
-  <section class="py-20 px-4 bg-gray-50">
+  <section class="py-20 px-4 bg-surface-alt">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-12">
-        <h2 class="font-display text-4xl font-bold text-gray-900 mb-3 reveal">${svcHeading}</h2>
-        <p class="text-gray-500 max-w-xl mx-auto reveal reveal-delay-1">${isFood ? 'Delicious food made with care — served fresh every day.' : 'Professional, reliable service backed by experience and a satisfaction guarantee.'}</p>
+        <h2 class="font-display text-4xl font-bold text-ink mb-3 reveal">${svcHeading}</h2>
+        <p class="text-muted max-w-xl mx-auto reveal reveal-delay-1">${isFood ? 'Delicious food made with care — served fresh every day.' : 'Professional, reliable service backed by experience and a satisfaction guarantee.'}</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 ${svcCards}
@@ -153,7 +153,7 @@ ${svcCards}
   </section>
 
   <!-- Wave Divider -->
-  <div class="wave-divider bg-gray-50" style="margin-bottom:-2px">
+  <div class="wave-divider bg-surface-alt" style="margin-bottom:-2px">
     <svg viewBox="0 0 1440 60" preserveAspectRatio="none" style="width:100%;height:60px;display:block">
       <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="white"/>
     </svg>
@@ -162,9 +162,9 @@ ${svcCards}
 ${hasPhotos ? photoSection : ''}
 
 ${videoEmbedUrl ? `  <!-- Video Section -->
-  <section class="py-16 px-4 bg-white">
+  <section class="py-16 px-4 bg-surface">
     <div class="max-w-4xl mx-auto">
-      <h2 class="font-display text-3xl font-bold text-center text-gray-900 mb-8 reveal">See Us in Action</h2>
+      <h2 class="font-display text-3xl font-bold text-center text-ink mb-8 reveal">See Us in Action</h2>
       <div class="rounded-2xl overflow-hidden shadow-xl aspect-video reveal">
         <iframe src="${videoEmbedUrl}" width="100%" height="100%" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen loading="lazy" style="display:block;width:100%;height:100%"></iframe>
       </div>
@@ -172,10 +172,10 @@ ${videoEmbedUrl ? `  <!-- Video Section -->
   </section>` : ''}
 
 ${form.hasMenu ? `  <!-- Menu Teaser -->
-  <section class="py-16 px-4 bg-gray-50 text-center">
+  <section class="py-16 px-4 bg-surface-alt text-center">
     <div class="max-w-3xl mx-auto">
-      <h2 class="font-display text-3xl font-bold text-gray-900 mb-3 reveal">Our Menu</h2>
-      <p class="text-gray-500 mb-8 reveal">Explore our full selection of dishes, drinks, and specials.</p>
+      <h2 class="font-display text-3xl font-bold text-ink mb-3 reveal">Our Menu</h2>
+      <p class="text-muted mb-8 reveal">Explore our full selection of dishes, drinks, and specials.</p>
       <a href="/menu/"
         class="inline-block font-bold px-10 py-4 rounded-lg text-lg transition-all hover:scale-105"
         style="background:var(--color-accent);color:#fff">
@@ -185,13 +185,13 @@ ${form.hasMenu ? `  <!-- Menu Teaser -->
   </section>` : ''}
 
   <!-- Why Choose Us -->
-  <section class="py-20 px-4 bg-white">
+  <section class="py-20 px-4 bg-surface">
     <div class="max-w-5xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div>
           <p class="text-accent font-semibold uppercase tracking-widest text-sm mb-3">${whyUsHeading}</p>
-          <h2 class="font-display text-4xl font-bold text-gray-900 mb-5 reveal">${businessName}</h2>
-          <p class="text-gray-600 leading-relaxed mb-8">${description || 'We take pride in delivering quality service to every customer. Local expertise, honest pricing, and a commitment to your satisfaction on every job.'}</p>
+          <h2 class="font-display text-4xl font-bold text-ink mb-5 reveal">${businessName}</h2>
+          <p class="text-body leading-relaxed mb-8">${description || 'We take pride in delivering quality service to every customer. Local expertise, honest pricing, and a commitment to your satisfaction on every job.'}</p>
           <div class="space-y-4">
             {[
               ${isFood ? `
@@ -206,7 +206,7 @@ ${form.hasMenu ? `  <!-- Menu Teaser -->
             ].map(item => (
               <div class="flex items-start gap-3">
                 <span class="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-bold" style="background:var(--color-accent)">✓</span>
-                <span class="text-gray-700">{item}</span>
+                <span class="text-body">{item}</span>
               </div>
             ))}
           </div>
@@ -222,10 +222,10 @@ ${statsHtml}
   </section>
 
   <!-- Service Areas -->
-  <section class="py-16 px-4 bg-gray-50">
+  <section class="py-16 px-4 bg-surface-alt">
     <div class="max-w-4xl mx-auto text-center">
-      <h2 class="font-display text-3xl font-bold text-gray-900 mb-2 reveal">${areasHeading}</h2>
-      <p class="text-gray-500 mb-8 reveal">${isFood ? 'We\'re right in your neighborhood' : 'Proudly serving the following communities'}</p>
+      <h2 class="font-display text-3xl font-bold text-ink mb-2 reveal">${areasHeading}</h2>
+      <p class="text-muted mb-8 reveal">${isFood ? 'We\'re right in your neighborhood' : 'Proudly serving the following communities'}</p>
       <div class="flex flex-wrap justify-center gap-3">
         {areas.map(a => (
           <a href={'/areas/' + a.slug + '/'} class="px-5 py-2.5 rounded-full text-sm font-semibold border-2 transition-all duration-200 hover:scale-105" style="border-color:var(--color-accent);color:var(--color-accent);background:var(--color-accent-light)">
@@ -237,9 +237,9 @@ ${statsHtml}
   </section>
 
   <!-- FAQs -->
-  <section class="py-20 px-4 bg-white">
+  <section class="py-20 px-4 bg-surface">
     <div class="max-w-3xl mx-auto">
-      <h2 class="font-display text-4xl font-bold text-gray-900 mb-10 text-center reveal">${faqHeading}</h2>
+      <h2 class="font-display text-4xl font-bold text-ink mb-10 text-center reveal">${faqHeading}</h2>
       <FAQAccordion faqs={faqs} />
     </div>
   </section>
@@ -306,8 +306,8 @@ const { service } = Astro.props;
       { label: 'Services', href: '/services/' },
       { label: service.title },
     ]} />
-    <h1 class="text-4xl font-bold text-gray-900 mb-4">{service.title}</h1>
-    <p class="text-xl text-gray-600 mb-8">{service.desc}</p>
+    <h1 class="text-4xl font-bold text-ink mb-4">{service.title}</h1>
+    <p class="text-xl text-body mb-8">{service.desc}</p>
     {service.image && (
       <div class="overflow-hidden rounded-xl mb-8 aspect-video">
         <img src={service.image} alt={service.title} class="w-full h-full object-cover" loading="lazy" />
@@ -317,9 +317,9 @@ const { service } = Astro.props;
       class="inline-block bg-accent text-white font-bold px-8 py-3 rounded-lg text-lg hover:bg-accent-dark transition-colors mb-12">
       Call {business.phone} for a Free Quote
     </a>
-    <div class="bg-gray-50 rounded-xl p-8 mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">About Our {service.title} Service</h2>
-      <p class="text-gray-600 leading-relaxed">{service.desc}</p>
+    <div class="bg-surface-alt rounded-xl p-8 mb-8">
+      <h2 class="text-2xl font-bold text-ink mb-4">About Our {service.title} Service</h2>
+      <p class="text-body leading-relaxed">{service.desc}</p>
     </div>
   </div>
   <CTASection heading={'Ready for ' + service.title + '?'} />
@@ -352,16 +352,16 @@ const { area } = Astro.props;
       { label: 'Areas', href: '/areas/' },
       { label: area.city },
     ]} />
-    <h1 class="text-4xl font-bold text-gray-900 mb-4">{business.name} in {area.city}</h1>
-    <p class="text-xl text-gray-600 mb-8">
+    <h1 class="text-4xl font-bold text-ink mb-4">{business.name} in {area.city}</h1>
+    <p class="text-xl text-body mb-8">
       Professional service for {area.city} residents and businesses.
       Call <a href={'tel:' + business.phone} class="text-accent font-bold">{business.phone}</a> for a free estimate.
     </p>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
       {services.map(s => (
-        <a href={'/services/' + s.slug + '/' + area.slug + '/'} class="bg-gray-50 border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-          <h3 class="font-bold text-gray-900">{s.title}</h3>
-          <p class="text-sm text-gray-600 mt-1">{s.desc}</p>
+        <a href={'/services/' + s.slug + '/' + area.slug + '/'} class="bg-surface-alt border border-line rounded-lg p-5 hover:shadow-md transition-shadow">
+          <h3 class="font-bold text-ink">{s.title}</h3>
+          <p class="text-sm text-body mt-1">{s.desc}</p>
         </a>
       ))}
     </div>
@@ -402,21 +402,21 @@ const desc = 'Looking for ' + service.title.toLowerCase() + ' in ' + area.city +
       { label: service.title, href: '/services/' + service.slug + '/' },
       { label: area.city },
     ]} />
-    <h1 class="text-4xl font-bold text-gray-900 mb-4">
+    <h1 class="text-4xl font-bold text-ink mb-4">
       {service.title} in {area.city}
     </h1>
-    <p class="text-xl text-gray-600 mb-6">{desc}</p>
+    <p class="text-xl text-body mb-6">{desc}</p>
     <a href={'tel:' + business.phone}
       class="inline-block bg-accent text-white font-bold px-8 py-3 rounded-lg text-lg hover:bg-accent-dark transition-colors mb-10">
       Call {business.phone} — Free Estimate
     </a>
-    <div class="bg-gray-50 rounded-xl p-8 mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-3">{service.title} in {area.city}</h2>
-      <p class="text-gray-600 leading-relaxed">{service.desc}</p>
+    <div class="bg-surface-alt rounded-xl p-8 mb-8">
+      <h2 class="text-2xl font-bold text-ink mb-3">{service.title} in {area.city}</h2>
+      <p class="text-body leading-relaxed">{service.desc}</p>
     </div>
-    <div class="bg-white border border-gray-200 rounded-xl p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Why Choose {business.name}?</h2>
-      <ul class="space-y-2 text-gray-600 mt-4">
+    <div class="bg-card border border-line rounded-xl p-8">
+      <h2 class="text-2xl font-bold text-ink mb-2">Why Choose {business.name}?</h2>
+      <ul class="space-y-2 text-body mt-4">
         <li>✓ Licensed and insured in {business.state}</li>
         <li>✓ Serving {area.city} and surrounding communities</li>
         <li>✓ Free, no-obligation estimates</li>
@@ -440,17 +440,17 @@ import { business } from '../data/business';
 ---
 <BaseLayout title={'About ' + business.name} description={business.description}>
   <div class="max-w-4xl mx-auto px-4 py-16">
-    <h1 class="text-4xl font-bold text-gray-900 mb-6">About {business.name}</h1>
-    <p class="text-xl text-gray-600 leading-relaxed mb-8">{business.description}</p>
+    <h1 class="text-4xl font-bold text-ink mb-6">About {business.name}</h1>
+    <p class="text-xl text-body leading-relaxed mb-8">{business.description}</p>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
       {[
         { label: 'Licensed & Insured', desc: 'Fully licensed and insured for your protection.' },
         { label: 'Local Experts', desc: 'Proudly serving ' + business.city + ' and the surrounding area.' },
         { label: 'Free Estimates', desc: 'No-obligation quotes on every job.' },
       ].map(item => (
-        <div class="bg-gray-50 rounded-xl p-6">
-          <h3 class="font-bold text-gray-900 mb-2">{item.label}</h3>
-          <p class="text-gray-600 text-sm">{item.desc}</p>
+        <div class="bg-surface-alt rounded-xl p-6">
+          <h3 class="font-bold text-ink mb-2">{item.label}</h3>
+          <p class="text-body text-sm">{item.desc}</p>
         </div>
       ))}
     </div>
@@ -475,8 +475,8 @@ ${form.hasHours ? "import { hours } from '../data/hours';" : ''}
 <BaseLayout title=${'`Contact | ' + (form.businessName || 'Us') + '`'} description={'Contact ' + business.name + ' for a free estimate. Call ' + business.phone}>
   <div class="max-w-6xl mx-auto px-4 py-16">
     <div class="text-center mb-12">
-      <h1 class="font-display text-5xl font-bold text-gray-900 mb-3">Contact Us</h1>
-      <p class="text-gray-500 text-lg">We'd love to hear from you — reach out any time.</p>
+      <h1 class="font-display text-5xl font-bold text-ink mb-3">Contact Us</h1>
+      <p class="text-muted text-lg">We'd love to hear from you — reach out any time.</p>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
       <!-- Contact Form -->
@@ -485,21 +485,21 @@ ${form.hasHours ? "import { hours } from '../data/hours';" : ''}
           <input type="hidden" name="_subject" value="New inquiry from website" />
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Name *</label>
-              <input name="name" required class="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2" placeholder="Your name" />
+              <label class="block text-sm font-semibold text-body mb-1.5">Name *</label>
+              <input name="name" required class="w-full border border-line rounded-xl px-4 py-3 text-ink focus:outline-none focus:ring-2" placeholder="Your name" />
             </div>
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Phone</label>
-              <input name="phone" type="tel" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2" placeholder="(xxx) xxx-xxxx" />
+              <label class="block text-sm font-semibold text-body mb-1.5">Phone</label>
+              <input name="phone" type="tel" class="w-full border border-line rounded-xl px-4 py-3 focus:outline-none focus:ring-2" placeholder="(xxx) xxx-xxxx" />
             </div>
           </div>
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email *</label>
-            <input name="email" type="email" required class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2" placeholder="your@email.com" />
+            <label class="block text-sm font-semibold text-body mb-1.5">Email *</label>
+            <input name="email" type="email" required class="w-full border border-line rounded-xl px-4 py-3 focus:outline-none focus:ring-2" placeholder="your@email.com" />
           </div>
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Message *</label>
-            <textarea name="message" required rows="5" class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 resize-none" placeholder="How can we help you?"></textarea>
+            <label class="block text-sm font-semibold text-body mb-1.5">Message *</label>
+            <textarea name="message" required rows="5" class="w-full border border-line rounded-xl px-4 py-3 focus:outline-none focus:ring-2 resize-none" placeholder="How can we help you?"></textarea>
           </div>
           <button type="submit"
             class="w-full font-bold py-4 rounded-xl text-lg text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -510,36 +510,36 @@ ${form.hasHours ? "import { hours } from '../data/hours';" : ''}
       </div>
       <!-- Info + Map -->
       <div class="space-y-6">
-        <div class="bg-gray-50 rounded-2xl p-6 space-y-4">
+        <div class="bg-surface-alt rounded-2xl p-6 space-y-4">
           <div class="flex items-start gap-3">
             <span class="text-2xl">📞</span>
             <div>
-              <div class="font-semibold text-gray-900">Phone</div>
+              <div class="font-semibold text-ink">Phone</div>
               <a href={'tel:' + business.phone} class="font-bold text-lg" style="color:var(--color-accent)">{business.phone}</a>
             </div>
           </div>
           {business.email && <div class="flex items-start gap-3">
             <span class="text-2xl">✉️</span>
             <div>
-              <div class="font-semibold text-gray-900">Email</div>
-              <a href={'mailto:' + business.email} class="text-gray-600 hover:text-gray-900">{business.email}</a>
+              <div class="font-semibold text-ink">Email</div>
+              <a href={'mailto:' + business.email} class="text-body hover:text-ink">{business.email}</a>
             </div>
           </div>}
           {business.address && <div class="flex items-start gap-3">
             <span class="text-2xl">📍</span>
             <div>
-              <div class="font-semibold text-gray-900">Address</div>
-              <p class="text-gray-600">{business.address}<br />{business.city}, {business.state} {business.zip}</p>
+              <div class="font-semibold text-ink">Address</div>
+              <p class="text-body">{business.address}<br />{business.city}, {business.state} {business.zip}</p>
             </div>
           </div>}
           ${form.hasHours ? `{hours && <div class="flex items-start gap-3">
             <span class="text-2xl">🕐</span>
             <div class="flex-1">
-              <div class="font-semibold text-gray-900 mb-2">Hours</div>
+              <div class="font-semibold text-ink mb-2">Hours</div>
               <div class="space-y-1 text-sm">
                 {hours.map(h => (
                   <div class="flex justify-between">
-                    <span class="text-gray-500 w-24">{h.day}</span>
+                    <span class="text-muted w-24">{h.day}</span>
                     <span class="font-medium">{h.closed ? 'Closed' : h.open + ' – ' + h.close}</span>
                   </div>
                 ))}
@@ -547,7 +547,7 @@ ${form.hasHours ? "import { hours } from '../data/hours';" : ''}
             </div>
           </div>}` : ''}
         </div>
-        ${mapQuery ? `<div class="rounded-2xl overflow-hidden shadow-sm border border-gray-100" style="height:280px">
+        ${mapQuery ? `<div class="rounded-2xl overflow-hidden shadow-sm border border-line" style="height:280px">
           <iframe
             src="https://maps.google.com/maps?q=${mapQuery}&output=embed"
             width="100%" height="100%" style="border:0" loading="lazy" allowfullscreen
@@ -570,13 +570,13 @@ import { business } from '../../data/business';
 ---
 <BaseLayout title={'Services | ' + business.name} description={'All services offered by ' + business.name}>
   <div class="max-w-6xl mx-auto px-4 py-16">
-    <h1 class="text-4xl font-bold text-gray-900 mb-4">Our Services</h1>
-    <p class="text-xl text-gray-600 mb-10">Professional service backed by experience and a satisfaction guarantee.</p>
+    <h1 class="text-4xl font-bold text-ink mb-4">Our Services</h1>
+    <p class="text-xl text-body mb-10">Professional service backed by experience and a satisfaction guarantee.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {services.map(s => (
-        <a href={'/services/' + s.slug + '/'} class="block bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-          <h2 class="text-xl font-bold text-gray-900 mb-2">{s.title}</h2>
-          <p class="text-gray-600 text-sm">{s.desc}</p>
+        <a href={'/services/' + s.slug + '/'} class="block bg-card border border-line rounded-xl p-6 hover:shadow-lg transition-shadow">
+          <h2 class="text-xl font-bold text-ink mb-2">{s.title}</h2>
+          <p class="text-body text-sm">{s.desc}</p>
           <span class="mt-4 inline-block text-accent font-semibold text-sm">Learn more →</span>
         </a>
       ))}
@@ -594,11 +594,11 @@ import { business } from '../../data/business';
 ---
 <BaseLayout title={'Service Areas | ' + business.name} description={business.name + ' serves these communities'}>
   <div class="max-w-4xl mx-auto px-4 py-16">
-    <h1 class="text-4xl font-bold text-gray-900 mb-4">Service Areas</h1>
-    <p class="text-xl text-gray-600 mb-10">We proudly serve the following communities:</p>
+    <h1 class="text-4xl font-bold text-ink mb-4">Service Areas</h1>
+    <p class="text-xl text-body mb-10">We proudly serve the following communities:</p>
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
       {areas.map(a => (
-        <a href={'/areas/' + a.slug + '/'} class="block bg-gray-50 rounded-lg px-6 py-4 font-semibold text-gray-800 hover:bg-accent hover:text-white transition-colors text-center">
+        <a href={'/areas/' + a.slug + '/'} class="block bg-surface-alt rounded-lg px-6 py-4 font-semibold text-ink hover:bg-accent hover:text-white transition-colors text-center">
           {a.city}
         </a>
       ))}
@@ -649,23 +649,23 @@ import { menu } from '../data/menu';
 >
   <div class="max-w-4xl mx-auto px-4 py-16">
     <div class="text-center mb-12">
-      <h1 class="font-display text-5xl font-bold text-gray-900 mb-3">{business.name}</h1>
-      <p class="text-gray-500 text-lg">Menu</p>
+      <h1 class="font-display text-5xl font-bold text-ink mb-3">{business.name}</h1>
+      <p class="text-muted text-lg">Menu</p>
     </div>
     {menu.map(cat => (
       <div class="mb-12">
         <div class="flex items-center gap-4 mb-6">
-          <h2 class="font-display text-2xl font-bold text-gray-900">{cat.category}</h2>
-          <div class="flex-1 h-px bg-gray-200"></div>
+          <h2 class="font-display text-2xl font-bold text-ink">{cat.category}</h2>
+          <div class="flex-1 h-px bg-line"></div>
         </div>
         <div class="space-y-4">
           {cat.items.map(item => (
-            <div class="flex justify-between items-start gap-6 py-3 border-b border-gray-100">
+            <div class="flex justify-between items-start gap-6 py-3 border-b border-line">
               <div class="flex items-start gap-4 flex-1">
                 {item.image && <img src={item.image} alt={item.name} class="w-16 h-16 rounded-lg object-cover flex-shrink-0" loading="lazy" />}
                 <div class="flex-1">
-                  <span class="font-semibold text-gray-900">{item.name}</span>
-                  {item.desc && <p class="text-sm text-gray-500 mt-0.5">{item.desc}</p>}
+                  <span class="font-semibold text-ink">{item.name}</span>
+                  {item.desc && <p class="text-sm text-muted mt-0.5">{item.desc}</p>}
                 </div>
               </div>
               <span class="font-bold text-lg flex-shrink-0" style="color:var(--color-accent)">{item.price}</span>

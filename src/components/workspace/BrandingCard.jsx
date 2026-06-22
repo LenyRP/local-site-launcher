@@ -3,6 +3,12 @@ import { Card, Field, ImageUpload, S } from './formKit.jsx'
 export default function BrandingCard({ business, set, images, setImg }) {
   return (
     <Card title="🎨 Branding, Logo & Photos" defaultOpen={false}>
+      <Field label="Theme" hint="(site color scheme)">
+        <select style={S.input} value={business.theme || 'light'} onChange={e => set('theme', e.target.value)}>
+          <option value="light">Light</option>
+          <option value="dark">Dark (charcoal)</option>
+        </select>
+      </Field>
       <Field label="Price Range" hint="(optional — e.g. $, $$, $$$, or &quot;$50-$200&quot;)">
         <input style={S.input} value={business.priceRange || ''} onChange={e => set('priceRange', e.target.value)} placeholder="$$" maxLength={20} />
       </Field>

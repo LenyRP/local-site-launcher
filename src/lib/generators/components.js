@@ -84,7 +84,7 @@ import { business } from '../data/business';
 export interface Props { heading?: string; subtext?: string; }
 const { heading = 'Ready to Get Started?', subtext = 'Call or text us for a free, no-obligation estimate.' } = Astro.props;
 ---
-<section class="relative overflow-hidden py-20 px-4" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);">
+<section class="relative overflow-hidden py-20 px-4" style="background:linear-gradient(135deg,var(--color-deep) 0%,var(--color-deep-2) 100%);">
   <div class="absolute inset-0 opacity-5" style="background-image:radial-gradient(circle at 2px 2px, white 1px, transparent 0);background-size:32px 32px;"></div>
   <div class="relative max-w-3xl mx-auto text-center">
     <h2 class="font-display text-4xl font-bold text-white mb-3">{heading}</h2>
@@ -120,14 +120,14 @@ const schemaFaq = {
 };
 ---
 <script type="application/ld+json" set:html={JSON.stringify(schemaFaq)} />
-<div class="divide-y divide-gray-200">
+<div class="divide-y divide-line">
   {faqs.map(f => (
     <details class="group py-4">
-      <summary class="flex justify-between items-center cursor-pointer font-semibold text-gray-900 list-none">
+      <summary class="flex justify-between items-center cursor-pointer font-semibold text-ink list-none">
         {f.q}
         <span class="text-accent text-xl group-open:rotate-45 transition-transform">+</span>
       </summary>
-      <p class="mt-3 text-gray-600 leading-relaxed">{f.a}</p>
+      <p class="mt-3 text-body leading-relaxed">{f.a}</p>
     </details>
   ))}
 </div>
@@ -150,11 +150,11 @@ const schema = {
 };
 ---
 <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-<nav aria-label="Breadcrumb" class="text-sm text-gray-500 mb-6">
+<nav aria-label="Breadcrumb" class="text-sm text-muted mb-6">
   {crumbs.map((c, i) => (
     <span>
       {i > 0 && <span class="mx-2">›</span>}
-      {c.href ? <a href={c.href} class="hover:text-gray-900">{c.label}</a> : <span class="text-gray-900">{c.label}</span>}
+      {c.href ? <a href={c.href} class="hover:text-ink">{c.label}</a> : <span class="text-ink">{c.label}</span>}
     </span>
   ))}
 </nav>
