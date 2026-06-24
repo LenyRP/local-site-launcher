@@ -32,6 +32,8 @@ export function newLead(partial = {}) {
     hours: null,
     reviews: [],
     menu: [],
+    files: [],
+    buildConfig: null,
     publish: null,
     ghl: null,
     ...partial,

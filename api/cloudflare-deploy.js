@@ -1,9 +1,13 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
-  const { token, accountId, projectName, owner, repoName } = req.body
+  const { token, accountId, projectName, owner, repoName, buildCommand, destDir } = req.body
   if (!token || !accountId || !projectName || !owner || !repoName) {
     return res.status(400).json({ error: 'token, accountId, projectName, owner, repoName required' })
   }
+  // buildCommand '' + destDir '/' => serve a pre-built static folder as-is.
+  // Defaults keep the old behavior (CF runs the framework build into dist/).
+  const build_command = buildCommand ?? 'npm run build'
+  const destination_dir = destDir ?? 'dist'
 
   const slug = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').slice(0, 50).replace(/-$/, '')
   const cf = (path, opts = {}) => fetch('https://api.cloudflare.com/client/v4' + path, {
@@ -27,7 +31,7 @@ export default async function handler(req, res) {
             deployments_enabled: true,
           },
         },
-        build_config: { build_command: 'npm run build', destination_dir: 'dist' },
+        build_config: { build_command, destination_dir },
       }),
     })
     if (!created.success) return res.status(500).json({ error: JSON.stringify(created.errors) })

@@ -22,12 +22,16 @@ export default async function handler(req, res) {
     await new Promise(r => setTimeout(r, 1500))
   }
 
-  for (const { path, content } of files) {
+  // Each file: { path, content, encoding }. encoding 'base64' => content is already
+  // base64 (binary assets). Anything else => content is utf-8 text, encode here.
+  for (const { path, content, encoding } of files) {
     const existing = await gh(`/repos/${owner}/${repoName}/contents/${path}`)
     const sha = existing.ok ? (await existing.json()).sha : undefined
-    const b64 = typeof btoa !== 'undefined'
-      ? btoa(unescape(encodeURIComponent(content)))
-      : Buffer.from(content, 'utf8').toString('base64')
+    const b64 = encoding === 'base64'
+      ? content
+      : (typeof btoa !== 'undefined'
+          ? btoa(unescape(encodeURIComponent(content)))
+          : Buffer.from(content, 'utf8').toString('base64'))
     await gh(`/repos/${owner}/${repoName}/contents/${path}`, {
       method: 'PUT',
       body: JSON.stringify({ message: 'Update ' + path, content: b64, ...(sha ? { sha } : {}) }),

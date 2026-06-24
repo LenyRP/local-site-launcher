@@ -80,7 +80,7 @@ export default function LeadWorkspace({ leadId, onBack }) {
     } catch (e) { setLookupStatus('Error: ' + e.message) }
   }
 
-  const onGenerated = () => setLead(l => ({ ...l, status: advanceStatus(l.status, 'built') }))
+  const onBuilt = ({ files, buildConfig }) => setLead(l => ({ ...l, files, buildConfig, status: advanceStatus(l.status, 'built') }))
   const onPublished = (publish) => setLead(l => ({ ...l, publish, status: advanceStatus(l.status, 'published') }))
   const onContacted = (lastOutboundAt) => setLead(l => ({ ...l, ghl: { ...(l.ghl || {}), lastOutboundAt }, status: advanceStatus(l.status, 'contacted') }))
   const setGhl = (patch) => setLead(l => ({ ...l, ghl: { ...(l.ghl || {}), ...patch } }))
@@ -136,7 +136,7 @@ export default function LeadWorkspace({ leadId, onBack }) {
       <BrandingCard business={b} set={set} images={lead.images} setImg={setImg} />
       <ServicesCard business={b} services={lead.services} setServices={sub('services')} sectionTitles={lead.sectionTitles} setSectionTitles={sub('sectionTitles')} hours={lead.hours} setHours={sub('hours')} reviews={lead.reviews} setReviews={sub('reviews')} menu={lead.menu} setMenu={sub('menu')} />
       <SocialCard business={b} set={set} />
-      <BuildCard lead={lead} onGenerated={onGenerated} />
+      <BuildCard lead={lead} onBuilt={onBuilt} />
       <PublishCard lead={lead} settings={settings} onPublished={onPublished} />
       <OutreachCard lead={lead} settings={settings} onContacted={onContacted} setGhl={setGhl} />
     </div>

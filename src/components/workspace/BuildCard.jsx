@@ -1,151 +1,124 @@
-import { useState } from 'react'
-import JSZip from 'jszip'
-import { generateAstroSite, generatePreviewHTML } from '../../lib/siteGenerator.js'
-import { getNicheData, slugify } from '../../lib/niches.js'
+import { useRef, useState } from 'react'
 import { S, Card } from './formKit.jsx'
 
-const fileCard = {
-  background: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: 6,
-  padding: '8px 12px',
-  marginBottom: 6,
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  fontSize: 12,
+// Files we treat as UTF-8 text; everything else is pushed as base64 (binary asset).
+const TEXT_EXT = new Set([
+  'html', 'htm', 'css', 'js', 'jsx', 'ts', 'tsx', 'astro', 'vue', 'svelte',
+  'json', 'jsonc', 'md', 'mdx', 'txt', 'svg', 'xml', 'yml', 'yaml', 'toml',
+  'mjs', 'cjs', 'map', 'csv', 'webmanifest', 'gitignore', 'env', 'lock',
+])
+// Never upload these — bloat or local-only.
+const SKIP_DIR = ['node_modules/', '.git/', '.astro/', '.vercel/', '.next/', '.DS_Store']
+
+function extOf(path) {
+  const name = path.split('/').pop() || ''
+  if (name.startsWith('.')) return name.slice(1).toLowerCase() // .gitignore -> gitignore
+  return name.includes('.') ? name.split('.').pop().toLowerCase() : ''
 }
 
-const btnOutline = {
-  background: 'transparent',
-  color: 'var(--text-dim)',
-  border: '1px solid var(--border)',
-  borderRadius: 6,
-  padding: '10px 16px',
-  fontWeight: 600,
-  cursor: 'pointer',
-  fontSize: 13,
+function bufToBase64(buf) {
+  let binary = ''
+  const bytes = new Uint8Array(buf)
+  const chunk = 0x8000
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk))
+  }
+  return btoa(binary)
 }
 
-export default function BuildCard({ lead, onGenerated }) {
-  const [generated, setGenerated] = useState(null)
-  const [selectedFile, setSelectedFile] = useState(null)
+export default function BuildCard({ lead, onBuilt }) {
+  const inputRef = useRef(null)
+  const [status, setStatus] = useState('')
+  const [busy, setBusy] = useState(false)
+  const files = lead.files || []
+  const buildConfig = lead.buildConfig
 
-  const business = lead.business || {}
-  const images = lead.images || {}
-
-  function buildPayload() {
-    const _customServices = lead.services || getNicheData(business.serviceType || 'pressure-washing').services
-    return [
-      {
-        ...business,
-        _customServices,
-        _menu: lead.menu,
-        _sectionTitles: lead.sectionTitles,
-        _reviews: lead.reviews,
-        _hours: lead.hours,
-      },
-      images,
-    ]
-  }
-
-  function handleGenerate() {
-    if (!business.businessName) { alert('Enter a business name first.'); return }
-    const [payload, imgs] = buildPayload()
-    const files = generateAstroSite(payload, imgs)
-    setGenerated(files)
-    setSelectedFile(Object.keys(files).find(k => !files[k].startsWith('data:')))
-    if (onGenerated) onGenerated(Object.keys(files).length)
-  }
-
-  function handlePreview() {
-    const [payload, imgs] = buildPayload()
-    const html = generatePreviewHTML(payload, imgs)
-    const blob = new Blob([html], { type: 'text/html' })
-    window.open(URL.createObjectURL(blob), '_blank')
-  }
-
-  async function handleDownload() {
-    const [payload, imgs] = buildPayload()
-    const files = generated || generateAstroSite(payload, imgs)
-    const zip = new JSZip()
-    Object.entries(files).forEach(([path, content]) => {
-      const realPath = path === 'gitignore.txt' ? '.gitignore' : path
-      if (typeof content === 'string' && content.startsWith('data:')) {
-        const b64 = content.split(',')[1]
-        zip.file(realPath, b64, { base64: true })
-      } else {
-        zip.file(realPath, content)
+  async function handleFolder(e) {
+    const picked = Array.from(e.target.files || [])
+    if (!picked.length) return
+    setBusy(true)
+    setStatus('Reading folder…')
+    try {
+      const out = []
+      for (const f of picked) {
+        // webkitRelativePath: "chosen-folder/src/index.astro" -> strip top folder
+        const rel = f.webkitRelativePath || f.name
+        const path = rel.split('/').slice(1).join('/') || f.name
+        if (!path) continue
+        if (SKIP_DIR.some(d => ('/' + rel).includes('/' + d) || rel.endsWith(d.replace('/', '')))) continue
+        if (TEXT_EXT.has(extOf(path))) {
+          out.push({ path, content: await f.text(), encoding: 'utf8' })
+        } else {
+          out.push({ path, content: bufToBase64(await f.arrayBuffer()), encoding: 'base64' })
+        }
       }
-    })
-    const blob = await zip.generateAsync({ type: 'blob' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = (business.slug || slugify(business.businessName)) + '.zip'
-    a.click()
-  }
+      if (!out.length) { setStatus('No usable files found in that folder.'); return }
 
-  const fileList = generated ? Object.keys(generated) : []
-  const fileCount = fileList.length
-  const fileContent = selectedFile && generated ? generated[selectedFile] : ''
-  const isImage = fileContent && fileContent.startsWith('data:')
+      const hasPkg = out.some(f => f.path === 'package.json')
+      const hasRootIndex = out.some(f => f.path === 'index.html')
+      const hasPublicIndex = out.some(f => f.path === 'public/index.html')
+      // Source project (Astro/Vite/etc.) → let CF build.
+      // client-site-studio static repo → index.html lives in public/, serve that dir.
+      // Pre-built/plain static with root index.html → serve repo root.
+      let cfg
+      if (hasPkg) {
+        cfg = { buildCommand: 'npm run build', destDir: 'dist', kind: 'source' }
+      } else if (hasPublicIndex) {
+        cfg = { buildCommand: '', destDir: 'public', kind: 'static' }
+      } else {
+        cfg = { buildCommand: '', destDir: '/', kind: 'static' }
+      }
+      if (!hasPkg && !hasRootIndex && !hasPublicIndex) {
+        setStatus('Warning: no package.json and no index.html (root or public/) — check this is the site folder.')
+      } else {
+        const where = cfg.kind === 'source' ? 'CF will run npm build → dist' : `static, served from ${cfg.destDir}`
+        setStatus(`✓ Loaded ${out.length} files · ${where}`)
+      }
+      onBuilt({ files: out, buildConfig: cfg })
+    } catch (err) {
+      setStatus('Error reading folder: ' + err.message)
+    } finally {
+      setBusy(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
+  }
 
   return (
-    <Card title="⚡ Build Site" badge={fileCount ? '✓ ' + fileCount + ' files' : ''}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button style={S.btnPrimary} onClick={handleGenerate}>
-          {generated ? '↺ Regenerate' : '⚡ Generate Site'}
+    <Card title="📁 Site Folder" badge={files.length ? '✓ ' + files.length + ' files' : ''}>
+      <p style={{ fontSize: 14, color: 'var(--text-dim)', margin: '0 0 14px' }}>
+        Build the site in Claude Code, then drop the project folder here. Astro/Vite source builds on Cloudflare; a plain static folder is served as-is.
+      </p>
+      <input
+        ref={inputRef}
+        type="file"
+        webkitdirectory=""
+        directory=""
+        multiple
+        onChange={handleFolder}
+        style={{ display: 'none' }}
+      />
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button style={S.btnPrimary} onClick={() => inputRef.current?.click()} disabled={busy}>
+          {files.length ? '↺ Replace folder' : '📁 Select site folder'}
         </button>
-        {generated && (
-          <>
-            <button style={btnOutline} onClick={handlePreview}>👁 Preview</button>
-            <button style={btnOutline} onClick={handleDownload}>⬇ Download ZIP</button>
-          </>
+        {buildConfig && (
+          <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>
+            {buildConfig.kind === 'source' ? 'Source · npm run build → dist' : `Static · served from ${buildConfig.destDir}`}
+          </span>
         )}
       </div>
-
-      {!generated ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 120, color: 'var(--text-dim)', gap: 12 }}>
-          <div style={{ fontSize: 40 }}>⚡</div>
-          <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>Click Generate to build the site</p>
-          <p style={{ fontSize: 12, margin: 0 }}>Generates a complete Astro 5 site</p>
+      {status && (
+        <div style={{ fontSize: 13, marginTop: 12, color: status.startsWith('✓') ? 'var(--ok)' : status.startsWith('Warning') ? 'var(--accent)' : 'var(--text-dim)' }}>
+          {status}
         </div>
-      ) : (
-        <div style={{ display: 'flex', height: 400, gap: 16 }}>
-          {/* File list */}
-          <div style={{ width: 220, flexShrink: 0, overflowY: 'auto' }}>
-            {fileList.map(f => (
-              <div
-                key={f}
-                onClick={() => setSelectedFile(f)}
-                style={{
-                  ...fileCard,
-                  cursor: 'pointer',
-                  background: f === selectedFile ? 'var(--surface2)' : 'var(--surface)',
-                  borderColor: f === selectedFile ? 'var(--accent)' : 'var(--border)',
-                }}
-              >
-                <span style={{ color: f === selectedFile ? 'var(--accent)' : 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {f}
-                </span>
-                {!generated[f]?.startsWith('data:') && (
-                  <button
-                    onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(generated[f]) }}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 11 }}
-                  >
-                    copy
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          {/* File content */}
-          <div style={{ flex: 1, background: 'var(--surface)', borderRadius: 8, overflow: 'auto', padding: 16 }}>
-            {isImage
-              ? <img src={fileContent} style={{ maxWidth: '100%', borderRadius: 4 }} alt={selectedFile} />
-              : <pre style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text)', margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{fileContent}</pre>
-            }
-          </div>
+      )}
+      {files.length > 0 && (
+        <div style={{ marginTop: 14, maxHeight: 180, overflowY: 'auto', borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+          {files.map(f => (
+            <div key={f.path} style={{ fontSize: 12, color: 'var(--text-dim)', padding: '2px 0', fontFamily: 'monospace' }}>
+              {f.path}{f.encoding === 'base64' ? '  ·  binary' : ''}
+            </div>
+          ))}
         </div>
       )}
     </Card>

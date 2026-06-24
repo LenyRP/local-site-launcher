@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { generateAstroSite } from '../../lib/siteGenerator.js'
-import { getNicheData, slugify } from '../../lib/niches.js'
+import { slugify } from '../../lib/niches.js'
 import { S, Card } from './formKit.jsx'
 
 export default function PublishCard({ lead, settings, onPublished }) {
@@ -8,62 +7,33 @@ export default function PublishCard({ lead, settings, onPublished }) {
   const [publishResult, setPublishResult] = useState(null)
 
   const business = lead.business || {}
-  const images = lead.images || {}
-
-  function buildPayload() {
-    const _customServices = lead.services || getNicheData(business.serviceType || 'pressure-washing').services
-    return [
-      {
-        ...business,
-        _customServices,
-        _menu: lead.menu,
-        _sectionTitles: lead.sectionTitles,
-        _reviews: lead.reviews,
-        _hours: lead.hours,
-      },
-      images,
-    ]
-  }
+  const files = lead.files || []
+  const buildConfig = lead.buildConfig
 
   async function handlePublish() {
     if (!settings.ghToken) { alert('Enter a GitHub token in Publish Settings first.'); return }
+    if (!files.length) { alert('Select the site folder in "Site Folder" first.'); return }
     setPublishing(true)
     setPublishResult(null)
     try {
-      const [payload, imgs] = buildPayload()
-      const files = generateAstroSite(payload, imgs)
       const repoName = slugify(business.businessName || 'local-site') + '-site'
-      const textFiles = Object.entries(files)
-        .filter(([, v]) => !v.startsWith('data:'))
-        .map(([path, content]) => ({ path: path === 'gitignore.txt' ? '.gitignore' : path, content }))
-      const imageFiles = Object.entries(files).filter(([, v]) => v.startsWith('data:'))
 
       const pushRes = await fetch('/api/github-publish', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: settings.ghToken, repoName, description: business.businessName + ' website', files: textFiles }),
+        body: JSON.stringify({ token: settings.ghToken, repoName, description: (business.businessName || 'Local') + ' website', files }),
       }).then(r => r.json())
       if (pushRes.error) throw new Error(pushRes.error)
       const owner = pushRes.owner
-
-      for (const [path, dataUrl] of imageFiles) {
-        const realPath = path === 'gitignore.txt' ? '.gitignore' : path
-        const b64 = dataUrl.split(',')[1]
-        const check = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/${realPath}`, {
-          headers: { Authorization: 'token ' + settings.ghToken, Accept: 'application/vnd.github.v3+json' },
-        })
-        const sha = check.ok ? (await check.json()).sha : undefined
-        await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/${realPath}`, {
-          method: 'PUT',
-          headers: { Authorization: 'token ' + settings.ghToken, 'Content-Type': 'application/json', Accept: 'application/vnd.github.v3+json' },
-          body: JSON.stringify({ message: 'Add image', content: b64, ...(sha ? { sha } : {}) }),
-        })
-      }
 
       let siteUrl = null
       if (settings.cfToken && settings.cfAccountId) {
         const cfRes = await fetch('/api/cloudflare-deploy', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: settings.cfToken, accountId: settings.cfAccountId, projectName: repoName.slice(0, 50), owner, repoName }),
+          body: JSON.stringify({
+            token: settings.cfToken, accountId: settings.cfAccountId,
+            projectName: repoName.slice(0, 50), owner, repoName,
+            buildCommand: buildConfig?.buildCommand, destDir: buildConfig?.destDir,
+          }),
         }).then(r => r.json())
         siteUrl = cfRes.url || `https://${repoName.slice(0, 50)}.pages.dev`
       }
@@ -83,9 +53,10 @@ export default function PublishCard({ lead, settings, onPublished }) {
   return (
     <Card title="🚀 Publish" badge={liveUrl ? '✓ live' : ''}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button style={S.btnPrimary} onClick={handlePublish} disabled={publishing}>
+        <button style={S.btnPrimary} onClick={handlePublish} disabled={publishing || !files.length}>
           {publishing ? 'Publishing...' : '🚀 Publish to GitHub + CF Pages'}
         </button>
+        {!files.length && <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>Select a site folder first</span>}
       </div>
 
       {liveUrl && !publishResult && (
